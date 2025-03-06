@@ -1,0 +1,25 @@
+# Node modules and output directories
+/frontend/node_modules/
+/frontend/.output/
+/frontend/.vercel/
+/frontend/.netlify/
+/frontend/.wrangler/
+/frontend/.svelte-kit/
+/frontend/build/
+/frontend/package-lock.json
+
+# Environment files
+/frontend/.env
+/frontend/.env.*
+!/frontend/.env.example
+!/frontend/.env.test
+
+# Vite timestamp files
+/frontend/vite.config.js.timestamp-*
+/frontend/vite.config.ts.timestamp-*
+
+# Gradle cache and build output
+/backend/.gradle/
+/backend/app/build/
+
+.vscode
