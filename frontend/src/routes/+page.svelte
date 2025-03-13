@@ -1,5 +1,3 @@
-<script>
-  import { Button } from '@sveltestrap/sveltestrap';
-</script>
-
-<Button color="primary" outline>Hello World!</Button>
+<div>
+    <h2>Homepage</h2>
+</div>
