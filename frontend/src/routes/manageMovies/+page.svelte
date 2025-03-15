@@ -11,7 +11,14 @@
     Button
   } from '@sveltestrap/sveltestrap'; 
   import { ListGroup, ListGroupItem } from '@sveltestrap/sveltestrap';
-  import SearchField from '$lib/SearchField.svelte'; 
+  import SearchField from '$lib/SearchField.svelte';
+  import {
+    MAX_MOVIE_NAME_LENGTH,
+    MAX_DESC_LENGTH,
+    MAX_GENRE_SEARCH_LENGTH,
+    MAX_PERSON_SEARCH_LENGTH,
+    MAX_GROSS
+  } from '$lib/consts.js';
 
   let movieName = "";
   let ageRating = "";
@@ -60,7 +67,7 @@
       return;
     }
     const value = Number(gross);
-    if (value <= 0 || !Number.isInteger(value) || value > 1000000000000) {
+    if (value <= 0 || !Number.isInteger(value) || value > MAX_GROSS) {
       grossInvalid = true;
     } else {
       grossInvalid = false;
@@ -100,18 +107,19 @@
 </script>
 
 <Container>
-    <h1>Edit Movie Info</h1>
+  <h1>Edit Movie Info</h1>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-    <div role="group" on:keydown={preventEnterSubmit}>
-      <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
-        <FormGroup floating label="Move name" class="mb-4">
-          <Input 
+  <div role="group" on:keydown={preventEnterSubmit}>
+    <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
+      <FormGroup class="mb-4">
+          <SearchField 
+            placeholder="Enter movie name" 
+            feedback="Can't be empty"
+            maxlength={MAX_MOVIE_NAME_LENGTH} 
             bind:value={movieName} 
-            maxlength="255" 
-            required 
-            feedback="Can't be empty" 
-            invalid={movieNameInvalid}
-            on:focus={() => movieNameInvalid = false}
+            invalid={movieNameInvalid} 
+            on:enter={preventEnterSubmit} 
+            on:fieldFocused={() => movieNameInvalid = false}
           />
         </FormGroup>
         <InputGroup class="mb-4">
@@ -130,14 +138,14 @@
           <Input 
             placeholder="Gross" 
             type="number" step="1" min="0"
-            max="1000000000000" 
+            max={MAX_GROSS}
             feedback="Invalid gross amount"
             bind:value={gross} 
             invalid={grossInvalid} 
             on:focus={() => grossInvalid = false}
           />
         </InputGroup>
-        <SearchField placeholder="Enter genre" bind:value={genreName} on:enter={handleGenreEnter}/>
+        <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:enter={handleGenreEnter}/>
         <ListGroup flush class="mt-4">
           {#each genreArray as genre, index}
           <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
@@ -150,7 +158,7 @@
           </ListGroupItem>
         {/each}
         </ListGroup>
-        <SearchField placeholder="Enter Actor Name" bind:value={actorName} on:enter={handleActorEnter}/>
+        <SearchField placeholder="Enter Actor Name" maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:enter={handleActorEnter}/>
         <ListGroup flush class="mt-4">
           {#each actorArray as actor, index}
             <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
@@ -173,7 +181,7 @@
           <Input 
             rows={1} type="textarea" bind:inner 
             on:input={resize} bind:value={description}
-            maxlength="500" style="resize: none;" 
+            maxlength={MAX_DESC_LENGTH} style="resize: none;" 
             required feedback="Can't be empty"
             invalid={descriptionInvalid}
             on:focus={() => descriptionInvalid = false}

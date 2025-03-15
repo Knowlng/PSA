@@ -4,6 +4,9 @@
     
     export let placeholder = '';
     export let value = '';
+    export let maxlength;
+    export let feedback = '';
+    export let invalid = false;
 
     const dispatch = createEventDispatcher();
     
@@ -14,6 +17,19 @@
             value = '';
         }
     }
+
+    function focus() {
+        dispatch('fieldFocused');
+    }
 </script>
 
-<Input maxlength="50" type="text" bind:value={value} placeholder={placeholder} on:keydown={selectOnEnter}/>
+<Input 
+    maxlength={maxlength} 
+    type="text" 
+    bind:value={value} 
+    placeholder={placeholder} 
+    feedback={feedback} 
+    invalid={invalid}
+    on:keydown={selectOnEnter} 
+    on:focus={focus}
+/>

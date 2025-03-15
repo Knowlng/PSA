@@ -33,11 +33,11 @@
   <Collapse {isOpen} navbar expand="md" on:update={handleUpdate}>
     <Nav class="ms-auto" navbar>
       <Dropdown nav inNavbar>
-        <DropdownToggle nav caret>Manage Films</DropdownToggle>
+        <DropdownToggle nav caret>Manage</DropdownToggle>
         <DropdownMenu end>
           <DropdownItem><NavLink href="/manageMovies">Movies</NavLink></DropdownItem>
-          <DropdownItem><NavLink href="#components/">Genres</NavLink></DropdownItem>
-          <DropdownItem><NavLink href="#components/">Personnel</NavLink></DropdownItem>
+          <DropdownItem><NavLink href="/manageGenres">Genres</NavLink></DropdownItem>
+          <DropdownItem><NavLink href="/managePersonnel">Personnel</NavLink></DropdownItem>
         </DropdownMenu>
       </Dropdown>
     </Nav>
