@@ -27,6 +27,7 @@
   let description = "";
   let actorName = '';
   let genreName = '';
+  let movieId;
 
   let genreArray = [];
   let actorArray = [];
@@ -36,30 +37,80 @@
   let movieNameInvalid = false;
   let descriptionInvalid = false;
   let grossInvalid = false;
-  
   const resize = () => {
     inner.style.height = 'auto';
     inner.style.height = 4 + inner.scrollHeight + 'px';
   };
 
-  function submitHandler() {
+  async function submitHandler() {
     movieName = movieName.trim();
     description = description.trim();
     movieNameInvalid = !movieName;
     descriptionInvalid = !description;
     validateGross();
+
     if (!movieName || !description || grossInvalid) {
       return;
     }
-    console.log({
-      movieName,
-      ageRating,
-      movieDate,
-      gross,
-      description,
-      actors: actorArray,
-      genre: genreArray
+
+    const payload = {
+      filmName: movieName,
+      filmDesc: description,
+      filmReleaseDate: movieDate,
+      filmGross: gross,
+      filmRating: ageRating,
+      genreIds: genreArray.map(genre => genre.id),
+      persons: actorArray.map(actor => ({
+        personId: actor.id,
+        role: actor.role
+      }))
+    };
+
+    const req = movieId ? `/update-film/${movieId}` : '/create-film';
+
+    fetch(`/api${req}`, {
+      method: movieId ? 'PUT' : 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(async response => {
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(result => {
+      console.log("Works:", result);
+    })
+    .catch(error => {
+      if (error.message === "Film with this name already exists") {
+        console.error("Film with this name already exists");
+      } else {
+        console.error("Error:", error);
+      }
+    })
+    .finally(() => {
+      resetValues();
     });
+  }
+
+  function resetValues() {
+    movieName = "";
+    ageRating = "";
+    movieDate = "";
+    gross = "";
+    description = "";
+    actorArray = [];
+    genreArray = [];
+    actorName = "";
+    genreName = "";
+    movieNameInvalid = false;
+    descriptionInvalid = false;
+    grossInvalid = false;
+    movieId = undefined;
   }
 
   function validateGross() {
@@ -75,12 +126,73 @@
   }
 
   function handleActorEnter(event) {
-    const { value } = event.detail;
-    if (value) {
-      actorArray = [...actorArray, { name: value, role: "actor" }];
+    const { id, name } = event.detail;
+    actorArray = [...actorArray, { id: id, name: name, role: "actor" }];
+  }
+
+  async function handleMovieEnter(event) {
+    const { id } = event.detail;
+
+    try {
+      const response = await fetch(`/api/film/${id}`);
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
+      }
+
+      const filmDetails = await response.json();
+      movieId = filmDetails.id;
+      movieName = filmDetails.filmName || "";
+      ageRating = filmDetails.filmRating || "";
+      movieDate = filmDetails.filmReleaseDate || "";
+      gross = filmDetails.filmGross != null ? filmDetails.filmGross : "";
+      description = filmDetails.filmDesc || "";
+      actorArray = (filmDetails.actors || []).map(actor => ({
+        id: actor.id,
+        name: actor.name,
+        role: actor.role
+      }));
+      genreArray = (filmDetails.genres || []).map(genre => ({
+        id: genre.id,
+        name: genre.name
+      }));
+
+    } catch (error) {
+      console.error("Failed to fetch film details:", error);
     }
   }
 
+  async function deleteMovie() {
+    if (!movieId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/delete-film/${movieId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        if (text.includes("Film not found")) {
+          console.error("Film not found.");
+        } else {
+          console.error(`Deletion error: ${text}`);
+        }
+        return;
+      }
+
+      const result = await response.text(); 
+      console.log("Deleted successfully:", result);
+
+    } catch (error) {
+      console.error("Failed to delete film:", error);
+    }
+    resetValues();
+  }
 
   function preventEnterSubmit(event) {
     if (event.key === "Enter") {
@@ -93,16 +205,13 @@
   }
 
   function handleGenreEnter(event) {
-    const { value } = event.detail;
-    if (value) {
-      genreArray = [...genreArray, value];
-    }
+    const { id, name } = event.detail;
+    genreArray = [...genreArray, { id, name }];
   }
 
   function removeGenre(index) {
     genreArray = genreArray.filter((_, i) => i !== index);
   }
-
 
 </script>
 
@@ -112,14 +221,16 @@
   <div role="group" on:keydown={preventEnterSubmit}>
     <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
       <FormGroup class="mb-4">
-          <SearchField 
+          <SearchField
             placeholder="Enter movie name" 
             feedback="Can't be empty"
             maxlength={MAX_MOVIE_NAME_LENGTH} 
             bind:value={movieName} 
             invalid={movieNameInvalid} 
-            on:enter={preventEnterSubmit} 
+            on:enter={preventEnterSubmit}
+            on:select={handleMovieEnter}
             on:fieldFocused={() => movieNameInvalid = false}
+            searchEndpoint={`/api/search-film`}
           />
         </FormGroup>
         <InputGroup class="mb-4">
@@ -145,12 +256,12 @@
             on:focus={() => grossInvalid = false}
           />
         </InputGroup>
-        <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:enter={handleGenreEnter}/>
+        <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/search-genre`}/>
         <ListGroup flush class="mt-4">
-          {#each genreArray as genre, index}
+          {#each genreArray as { id, name }, index}
           <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
             <Container class="p-0 w-25">
-              {genre}
+              {name}
             </Container>
             <Container class="d-flex justify-content-end p-0">
               <Button type="button" color="danger" on:click={() => removeGenre(index)}>Remove</Button>  
@@ -158,12 +269,12 @@
           </ListGroupItem>
         {/each}
         </ListGroup>
-        <SearchField placeholder="Enter Actor Name" maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:enter={handleActorEnter}/>
+        <SearchField placeholder="Enter Actor Name" maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:select={handleActorEnter} searchEndpoint={`/api/search-person`}/>
         <ListGroup flush class="mt-4">
-          {#each actorArray as actor, index}
+          {#each actorArray as { id, name}, index}
             <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
               <Container class="p-0 w-25">
-                {actor.name}
+                {name}
               </Container>
               <Container class="d-flex justify-content-end p-0">
                 <Input type="select" class="w-25" bind:value={actorArray[index].role}>
@@ -187,8 +298,11 @@
             on:focus={() => descriptionInvalid = false}
           />
         </FormGroup>
-        <Container class="text-center">
-          <Button type="submit"  color="primary" style="text-align:center;" on:click={submitHandler}>Submit</Button>
+        <Container class="text-center justify-content-between {movieId ? 'd-flex' : ''}">
+          <Button type="submit" color="{movieId ? 'success' : 'primary'}" style="text-align:center;" on:click={submitHandler}>{movieId ? 'Change' : 'Create'}</Button>
+          {#if movieId}
+            <Button type="button" color="danger" style="text-align:center;" on:click={deleteMovie}>Delete</Button>
+          {/if}
         </Container>
     </Form>
   </div>

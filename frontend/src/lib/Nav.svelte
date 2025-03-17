@@ -35,9 +35,11 @@
       <Dropdown nav inNavbar>
         <DropdownToggle nav caret>Manage</DropdownToggle>
         <DropdownMenu end>
-          <DropdownItem><NavLink href="/manageMovies">Movies</NavLink></DropdownItem>
-          <DropdownItem><NavLink href="/manageGenres">Genres</NavLink></DropdownItem>
-          <DropdownItem><NavLink href="/managePersonnel">Personnel</NavLink></DropdownItem>
+          <DropdownItem><NavLink href="/manageMovies">Manage Movies</NavLink></DropdownItem>
+          <DropdownItem><NavLink href="/updateGenre">Update Genre</NavLink></DropdownItem>
+          <DropdownItem><NavLink href="/createGenre">Create Genre</NavLink></DropdownItem>
+          <DropdownItem><NavLink href="/updatePersonnel">Update Personnel</NavLink></DropdownItem>
+          <DropdownItem><NavLink href="/createPersonnel">Create Personnel</NavLink></DropdownItem>
         </DropdownMenu>
       </Dropdown>
     </Nav>

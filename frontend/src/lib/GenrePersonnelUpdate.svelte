@@ -1,0 +1,167 @@
+<script>
+    import {
+        Badge,
+        Form,
+        Input,
+        FormGroup,
+        InputGroup,
+        InputGroupText,
+        Label,
+        Container,
+        Button
+    } from '@sveltestrap/sveltestrap'; 
+    import { ListGroup, ListGroupItem } from '@sveltestrap/sveltestrap';
+    import SearchField from '$lib/SearchField.svelte'; 
+    import { onMount } from 'svelte';
+  import { text } from '@sveltejs/kit';
+
+    export let type;
+    export let maxlength;
+
+    let selectedName = "";
+    let apiName;
+    let fieldName;
+    let showEditField;
+    let changeName;
+    let selectedId;
+
+    async function changeHandler() {
+        if (!changeName || changeName.trim() === "") {
+            showEditField = false;
+            return;
+        }
+        changeName = changeName.trim();
+
+        const payload = {
+            [fieldName]: changeName
+        };
+
+        fetch(`/api/update-${apiName}/${selectedId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    if (text.includes("Name already exists")) {
+                        console.error("Error: Name already exists");
+                    } else if(text.includes("Name cannot be empty")) {
+                        console.error("Error: Name cannot be empty");
+                    }
+                    else {
+                        console.error(`HTTP error! status: ${response.status}: ${text}`);
+                    }
+                    return null;
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result !== null) {
+                console.log("updated:", result);
+            }
+        })
+        .catch(error => {
+            console.info("error:", error);
+        })
+        .finally(() => {
+            changeName = "";
+            selectedName = "";
+            showEditField = false;
+        });
+    }
+
+
+    function deleteHandler() {
+        fetch(`/api/delete-${apiName}/${selectedId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(async response => {
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || `HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(result => {
+            console.log(result);
+        })
+        .catch(error => {
+            if (error.message.includes("Not found")) {
+                console.error("Error: Entry not found");
+            } else {
+                console.error("error:", error);
+            }
+        })
+        .finally(() => {
+            selectedName = "";   
+            selectedName = "";
+            showEditField = false;
+        });
+    }
+    
+    function selectHandler(event) {
+        const { id, name } = event.detail;
+        selectedName = name;
+        selectedId = id;
+        showEditField = true;
+    }
+
+
+    onMount(() => {
+        if(type === "Genre") {
+            fieldName = "genreName";
+            apiName = "genre";
+        } else if(type === "Personnel") {
+            fieldName = "personFullName";
+            apiName = "person";
+        }
+    });
+
+</script>
+
+<Container>
+    <h1>Update {type} Info</h1>
+    <p>Update {type} info by selecting an existing entry from the list</p>
+    <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
+        <FormGroup class="mb-4">
+        <SearchField 
+            placeholder="Enter {type} name" 
+            maxlength={maxlength}
+            bind:value={selectedName}
+            on:select={selectHandler}
+            on:fieldFocused={() => { showEditField = false; }}
+            searchEndpoint={`/api/search-${apiName}`}
+        />
+        </FormGroup>
+        {#if showEditField}
+            <Input 
+                class="mb-4"
+                maxlength={maxlength}
+                type="text"
+                bind:value={changeName}
+                placeholder="Enter a new name"
+            />
+            <Container class="d-flex justify-content-between">
+                <Button color="success" on:click={changeHandler}>Change</Button>
+                <Button color="danger" on:click={deleteHandler}>Delete</Button>
+            </Container>
+        {/if}
+    </Form>
+</Container>
+
+<style>
+    h1 {
+        padding:50px 0 50px 0;
+        text-align: center;
+    }
+    p {
+        text-align: center;
+    }
+</style>
