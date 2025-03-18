@@ -13,7 +13,8 @@
     import { ListGroup, ListGroupItem } from '@sveltestrap/sveltestrap';
     import SearchField from '$lib/SearchField.svelte'; 
     import { onMount } from 'svelte';
-  import { text } from '@sveltejs/kit';
+    import { text } from '@sveltejs/kit';
+    import Modal from '$lib/Modal.svelte';
 
     export let type;
     export let maxlength;
@@ -24,6 +25,7 @@
     let showEditField;
     let changeName;
     let selectedId;
+    let modalOpen = false;
 
     async function changeHandler() {
         if (!changeName || changeName.trim() === "") {
@@ -74,8 +76,12 @@
         });
     }
 
-
     function deleteHandler() {
+        modalOpen = true;
+    }
+
+
+    function confirmDelete() {
         fetch(`/api/delete-${apiName}/${selectedId}`, {
             method: 'DELETE',
             headers: {
@@ -155,6 +161,14 @@
         {/if}
     </Form>
 </Container>
+{#if modalOpen}
+    <Modal 
+        modalTitle={"Are you sure you want to delete " + selectedName + "?"}
+        modalBody={"This will remove " + selectedName + " from every associated movie"}
+        on:toggle={() => { modalOpen = false; }}
+        on:confirmDelete={confirmDelete}
+    />
+{/if}
 
 <style>
     h1 {
