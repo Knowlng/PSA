@@ -37,7 +37,7 @@
       })
       .catch(error => {
         addToast({
-          message: "Unable to reach the server. Please check your connection.",
+          message: "Something went wrong. Please try again later.",
           type: "error",
         });
         suggestions = [];

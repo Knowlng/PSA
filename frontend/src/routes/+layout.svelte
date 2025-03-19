@@ -4,6 +4,15 @@
   import { Container } from '@sveltestrap/sveltestrap';
   import '/src/styles/variables.css';
   import Toasts from "$lib/ToastNotification/Toasts.svelte";
+  import { onMount } from 'svelte';
+
+  onMount(() => {
+    let loggedIn = localStorage.getItem('userLoggedIn');
+    if (loggedIn === null) {
+      localStorage.setItem('userLoggedIn', false);
+    }
+  });
+
 </script>
 
 <div class="layout">

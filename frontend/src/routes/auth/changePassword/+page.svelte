@@ -7,8 +7,9 @@
         Input,
         Form
     } from '@sveltestrap/sveltestrap';
-    import { PASS_REGEX } from '$lib/consts.js';
     import Modal from '$lib/Modal.svelte';
+    import { PASS_REGEX, USER_PASS_LENGTH } from '$lib/consts.js';
+    import { addToast } from "$lib/ToastNotification/toastStore.js";
 
     let password = '';
     let repeatedPass = '';
@@ -16,12 +17,21 @@
     let modalOpen = false;
 
     function changeHandler() {
+        if(password.trim() === '') {
+            return;
+        }
         if (!PASS_REGEX.test(password)) {
-            console.log('Password does not meet the required criteria.');
+            addToast({
+                message: "Password does not meet the requirements",
+                type: "error",
+            });   
             return;
         }
         if (password !== repeatedPass) {
-            console.log('Passwords do not match.');
+            addToast({
+                message: "Passwords do not match",
+                type: "error",
+            });  
             return;
         }
         /*checks go here */
@@ -34,7 +44,6 @@
 
 
 </script>
-<!-- TBA: validation, depending on database -->
 <Container class="pt-5">
     <h1 class="text-center mb-5">Change Password</h1>
     <p class="text-center">Please provide a password that contains:</p>
@@ -47,11 +56,11 @@
     <Form class="w-75 mx-auto" style="min-width: 200px; max-width: 300px;"> 
         <FormGroup>
             <Label>New Password</Label>
-            <Input bind:value={password} placeholder="Enter new password" />
+            <Input bind:value={password} maxlength={USER_PASS_LENGTH} required placeholder="Enter new password" />
         </FormGroup>
         <FormGroup>
             <Label>Repeat new password</Label>
-            <Input bind:value={repeatedPass} placeholder="Repeat new password" />
+            <Input bind:value={repeatedPass} maxlength={USER_PASS_LENGTH} required placeholder="Repeat new password" />
         </FormGroup>
         <Container class="text-center p-0 mb-3">
             <Button color="primary" on:click={changeHandler}>
