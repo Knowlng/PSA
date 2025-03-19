@@ -165,8 +165,9 @@
     <Modal 
         modalTitle={"Are you sure you want to delete " + selectedName + "?"}
         modalBody={"This will remove " + selectedName + " from every associated movie"}
+        buttonText="Delete"
         on:toggle={() => { modalOpen = false; }}
-        on:confirmDelete={confirmDelete}
+        on:confirm={confirmDelete}
     />
 {/if}
 

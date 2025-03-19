@@ -32,6 +32,19 @@
   <NavbarToggler on:click={() => (isOpen = !isOpen)} />
   <Collapse {isOpen} navbar expand="md" on:update={handleUpdate}>
     <Nav class="ms-auto" navbar>
+      <NavItem>
+        <NavLink href="/login">Login</NavLink>
+      </NavItem>
+      <NavItem>
+        <NavLink href="/register">Register</NavLink>
+      </NavItem>
+      <Dropdown nav inNavbar>
+        <DropdownToggle nav caret>Profile</DropdownToggle>
+        <DropdownMenu end>
+          <DropdownItem><NavLink href="/changeUsername">Change Username</NavLink></DropdownItem>
+          <DropdownItem><NavLink href="/changePassword">Change Password</NavLink></DropdownItem>
+        </DropdownMenu>
+      </Dropdown>
       <Dropdown nav inNavbar>
         <DropdownToggle nav caret>Manage</DropdownToggle>
         <DropdownMenu end>

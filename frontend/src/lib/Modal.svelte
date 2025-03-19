@@ -1,33 +1,34 @@
 <script>
   import { Button, Modal, Container } from '@sveltestrap/sveltestrap';
+  import { createEventDispatcher } from 'svelte';
 
   export let modalTitle;
   export let modalBody;
+  export let buttonText;
 
   let open = true;
-import { createEventDispatcher } from 'svelte';
 
-const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher();
 
-const toggle = () => {
+  const toggle = () => {
     open = !open;
     dispatch('toggle', { open });
-};
+  };
 
-const confirmDelete = () => {
-    dispatch('confirmDelete');
+  const confirm = () => {
+    dispatch('confirm');
     toggle();
-};
+  };
 
 </script>
 
 <div>
   <Modal body header={modalTitle} isOpen={open} {toggle}>
     <p class="text-center">
-        {modalBody}
+      {modalBody}
     </p>
     <Container class="text-center">
-        <Button color="danger" class="mt-3" on:click={confirmDelete}>Delete</Button>
+      <Button color="danger" class="mt-3" on:click={confirm}>{buttonText}</Button>
     </Container>
   </Modal>
 </div>
