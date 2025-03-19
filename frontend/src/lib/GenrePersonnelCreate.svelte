@@ -1,5 +1,4 @@
 <script>
-  import { json } from '@sveltejs/kit';
     import {
         Badge,
         Form,
@@ -12,6 +11,7 @@
         Button
     } from '@sveltestrap/sveltestrap'; 
     import { onMount } from 'svelte';
+    import { addToast } from "$lib/ToastNotification/toastStore.js";
 
     export let type;
     export let maxlength;
@@ -41,12 +41,15 @@
             if (!response.ok) {
                 return response.text().then(text => {
                     if (text.includes("Name already exists")) {
-                        console.error("Error: Name already exists");
-                    } else if(text.includes("Name cannot be empty")) {
-                        console.error("Error: Name cannot be empty");
-                    }
-                    else {
-                        console.error(`HTTP error! status: ${response.status}: ${text}`);
+                        addToast({
+                            message: "Name already exists",
+                            type: "error",
+                        });                        
+                    } else {
+                       addToast({
+                            message: "Something went wrong. Please try again later.",
+                            type: "error",
+                        });
                     }
                     return null;
                 });
@@ -55,11 +58,17 @@
         })
         .then(result => {
             if (result !== null) {
-                console.log("works:", result);
+                addToast({
+                    message: "Entry created successfully",
+                    type: "success",
+                });
             }
         })
         .catch(error => {
-            console.error("error:", error);
+            addToast({
+                message: "Unable to reach the server. Please check your connection.",
+                type: "error",
+            });
         })
         .finally(() => {
             newName = "";
@@ -76,11 +85,12 @@
             apiName = "person";
         }
     });
-
 </script>
+
 
 <Container>
     <h1>Create {type}</h1>
+    <p class="text-center">Create a {type} by writting the name below</p>
     <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
         <Input 
             class="mb-4"

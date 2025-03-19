@@ -43,7 +43,7 @@ public class FilmController {
 
         if (filmRepository.findByFilmName(filmRequest.getFilmName().trim()).isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Film with this name already exists");
+                    .body("Name already exists");
         }
 
         Film film = new Film();
@@ -92,7 +92,7 @@ public class FilmController {
         Optional<Film> duplicateFilm = filmRepository.findByFilmName(filmRequest.getFilmName().trim());
         if (duplicateFilm.isPresent() && !duplicateFilm.get().getFilmId().equals(id)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Film with this name already exists");
+                    .body("Name already exists");
         }
 
         film.setFilmName(filmRequest.getFilmName().trim());

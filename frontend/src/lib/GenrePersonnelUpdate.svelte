@@ -13,8 +13,8 @@
     import { ListGroup, ListGroupItem } from '@sveltestrap/sveltestrap';
     import SearchField from '$lib/SearchField.svelte'; 
     import { onMount } from 'svelte';
-    import { text } from '@sveltejs/kit';
     import Modal from '$lib/Modal.svelte';
+    import { addToast } from "$lib/ToastNotification/toastStore.js";
 
     export let type;
     export let maxlength;
@@ -49,12 +49,21 @@
             if (!response.ok) {
                 return response.text().then(text => {
                     if (text.includes("Name already exists")) {
-                        console.error("Error: Name already exists");
-                    } else if(text.includes("Name cannot be empty")) {
-                        console.error("Error: Name cannot be empty");
+                        addToast({
+                            message: "Name already exists",
+                            type: "error",
+                        });     
+                    } else if(text.includes("Not found")) {
+                        addToast({
+                            message: "Entry not found",
+                            type: "error",
+                        }); 
                     }
                     else {
-                        console.error(`HTTP error! status: ${response.status}: ${text}`);
+                        addToast({
+                            message: "Something went wrong. Please try again later.",
+                            type: "error",
+                        });
                     }
                     return null;
                 });
@@ -63,11 +72,17 @@
         })
         .then(result => {
             if (result !== null) {
-                console.log("updated:", result);
+                addToast({
+                    message: "Entry updated successfully",
+                    type: "success",
+                });
             }
         })
         .catch(error => {
-            console.info("error:", error);
+            addToast({
+                message: "Unable to reach the server. Please check your connection.",
+                type: "error",
+            });
         })
         .finally(() => {
             changeName = "";
@@ -88,22 +103,37 @@
                 'Content-Type': 'application/json'
             }
         })
-        .then(async response => {
+        .then(response => {
             if (!response.ok) {
-                const text = await response.text();
-                throw new Error(text || `HTTP error! status: ${response.status}`);
+                return response.text().then(text => {
+                    if (text.includes("Not found")) {
+                        addToast({
+                            message: "Entry not found",
+                            type: "error",
+                        });     
+                    } else {
+                        addToast({
+                            message: "Something went wrong. Please try again later.",
+                            type: "error",
+                        });
+                    }
+                    return null;
+                });
             }
-            return response.text();
         })
         .then(result => {
-            console.log(result);
+           if (result !== null) {
+                addToast({
+                    message: "Entry deleted successfully",
+                    type: "success",
+                });
+            }
         })
         .catch(error => {
-            if (error.message.includes("Not found")) {
-                console.error("Error: Entry not found");
-            } else {
-                console.error("error:", error);
-            }
+            addToast({
+                message: "Unable to reach the server. Please check your connection.",
+                type: "error",
+            });
         })
         .finally(() => {
             selectedName = "";   

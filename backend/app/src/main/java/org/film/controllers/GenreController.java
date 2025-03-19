@@ -79,7 +79,7 @@ public class GenreController {
     public ResponseEntity<?> deleteGenre(@PathVariable Long id) {
         Optional<Genre> genreOptional = genreRepository.findById(id);
         if (genreOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Genre not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found");
         }
 
         Genre genre = genreOptional.get();
@@ -88,7 +88,7 @@ public class GenreController {
         genre.getFilms().clear();
         genreRepository.delete(genre);
 
-        return ResponseEntity.ok("Genre deleted successfully");
+        return ResponseEntity.ok("Deleted successfully");
     }
 
 }

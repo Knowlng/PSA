@@ -19,6 +19,10 @@
     MAX_PERSON_SEARCH_LENGTH,
     MAX_GROSS
   } from '$lib/consts.js';
+  import { addToast } from "$lib/ToastNotification/toastStore.js";
+  import Modal from '$lib/Modal.svelte';
+
+  let modalOpen = false;
 
   let movieName = "";
   let ageRating = "";
@@ -33,6 +37,8 @@
   let actorArray = [];
 
   let inner = '';
+
+  let response;
 
   let movieNameInvalid = false;
   let descriptionInvalid = false;
@@ -75,25 +81,50 @@
       },
       body: JSON.stringify(payload)
     })
-    .then(async response => {
+    .then(async res => {
+      response = res;
       if (!response.ok) {
         const text = await response.text();
-        throw new Error(text || `HTTP error! status: ${response.status}`);
+        if (text.includes("Name already exists")) {
+          addToast({
+            message: "Name already exists",
+            type: "error",
+          });
+        } else if (text.includes("Film not found")) {
+          addToast({
+            message: "Entry not found",
+            type: "error",
+          });
+        } else {
+          addToast({
+            message: "Something went wrong. Please try again later.",
+            type: "error",
+          });
+        }
+      } else {
+        if (movieId) {
+          addToast({
+            message: "Updated successfully",
+            type: "success",
+          });
+        } else {
+          addToast({
+            message: "Created successfully",
+            type: "success",
+          });
+        }
       }
-      return response.json();
-    })
-    .then(result => {
-      console.log("Works:", result);
     })
     .catch(error => {
-      if (error.message === "Film with this name already exists") {
-        console.error("Film with this name already exists");
-      } else {
-        console.error("Error:", error);
-      }
+      addToast({
+        message: "Unable to reach the server. Please check your connection.",
+        type: "error",
+      });
     })
     .finally(() => {
-      resetValues();
+      if (response && response.ok) {
+        resetValues();
+      }
     });
   }
 
@@ -136,8 +167,18 @@
     try {
       const response = await fetch(`/api/film/${id}`);
       if (!response.ok) {
-        const errorMessage = await response.text();
-        throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
+        const text = response.text();
+        if(text.includes("Film not found")) {
+          addToast({
+            message: "Entry not found",
+            type: "error",
+          });
+        } else {
+          addToast({
+            message: "Something went wrong. Please try again later.",
+            type: "error",
+          });
+        }
       }
 
       const filmDetails = await response.json();
@@ -158,7 +199,10 @@
       }));
 
     } catch (error) {
-      console.error("Failed to fetch film details:", error);
+      addToast({
+        message: "Unable to reach the server. Please check your connection.",
+        type: "error",
+      });
     }
   }
 
@@ -166,7 +210,6 @@
     if (!movieId) {
       return;
     }
-
     try {
       const response = await fetch(`/api/delete-film/${movieId}`, {
         method: 'DELETE',
@@ -174,22 +217,31 @@
           'Content-Type': 'application/json'
         }
       });
-
       if (!response.ok) {
         const text = await response.text();
         if (text.includes("Film not found")) {
-          console.error("Film not found.");
+          addToast({
+            message: "Entry not found",
+            type: "error",
+          });
         } else {
-          console.error(`Deletion error: ${text}`);
+          addToast({
+            message: "Something went wrong. Please try again later.",
+            type: "error",
+          });
         }
         return;
+      } else {
+        addToast({
+          message: "Deleted successfully",
+          type: "success",
+        });
       }
-
-      const result = await response.text(); 
-      console.log("Deleted successfully:", result);
-
     } catch (error) {
-      console.error("Failed to delete film:", error);
+      addToast({
+        message: "Unable to reach the server. Please check your connection.",
+        type: "error",
+      });
     }
     resetValues();
   }
@@ -300,13 +352,22 @@
         </FormGroup>
         <Container class="text-center justify-content-between {movieId ? 'd-flex' : ''}">
           <Button type="submit" color="{movieId ? 'success' : 'primary'}" style="text-align:center;" on:click={submitHandler}>{movieId ? 'Change' : 'Create'}</Button>
-          {#if movieId}
-            <Button type="button" color="danger" style="text-align:center;" on:click={deleteMovie}>Delete</Button>
-          {/if}
+            {#if movieId}
+              <Button type="button" color="danger" style="text-align:center;" on:click={() => { modalOpen = true; }}>Delete</Button>
+            {/if}
         </Container>
     </Form>
   </div>
 </Container>
+{#if modalOpen}
+    <Modal 
+      modalTitle={"Are you sure you want to delete " + movieName + "?"}
+      modalBody={"This will remove " + movieName + " from the public listing"}
+      buttonText="Delete"
+      on:toggle={() => { modalOpen = false; }}
+      on:confirm={deleteMovie}
+    />
+{/if}
 
 <style>
   h1 {

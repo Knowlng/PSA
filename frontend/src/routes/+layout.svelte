@@ -3,9 +3,11 @@
   import Footer from '$lib/Footer.svelte';
   import { Container } from '@sveltestrap/sveltestrap';
   import '/src/styles/variables.css';
+  import Toasts from "$lib/ToastNotification/Toasts.svelte";
 </script>
-  
+
 <div class="layout">
+  <Toasts/>
   <header>
     <Nav />
   </header>

@@ -1,6 +1,7 @@
 <script>
   import { Input } from '@sveltestrap/sveltestrap';
   import { createEventDispatcher } from 'svelte';
+  import { addToast } from "$lib/ToastNotification/toastStore.js";
 
   export let placeholder = '';
   export let value = '';
@@ -24,7 +25,10 @@
       fetch(`${searchEndpoint}?query=${encodeURIComponent(value)}`)
       .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          addToast({
+            message: "Something went wrong. Please try again later.",
+            type: "error",
+          });
         }
         return response.json();
       })
@@ -32,7 +36,10 @@
         suggestions = data;
       })
       .catch(error => {
-        console.error("Error fetching suggestions:", error);
+        addToast({
+          message: "Unable to reach the server. Please check your connection.",
+          type: "error",
+        });
         suggestions = [];
       });
     }, 300);
