@@ -38,19 +38,20 @@
             [fieldName]: changeName
         };
 
-        fetch(`/api/update-${apiName}/${selectedId}`, {
+        fetch(`/api/admin/update-${apiName}/${selectedId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            credentials: 'include'
         })
         .then(response => {
             if (!response.ok) {
                 return response.text().then(text => {
-                    if (text.includes("Name already exists")) {
+                    if (text.includes("Entry already exists")) {
                         addToast({
-                            message: "Name already exists",
+                            message: "Entry already exists",
                             type: "error",
                         });     
                     } else if(text.includes("Not found")) {
@@ -97,11 +98,12 @@
 
 
     function confirmDelete() {
-        fetch(`/api/delete-${apiName}/${selectedId}`, {
+        fetch(`/api/admin/delete-${apiName}/${selectedId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            credentials: 'include'
         })
         .then(response => {
             if (!response.ok) {
@@ -173,7 +175,7 @@
             bind:value={selectedName}
             on:select={selectHandler}
             on:fieldFocused={() => { showEditField = false; }}
-            searchEndpoint={`/api/search-${apiName}`}
+            searchEndpoint={`/api/public/search-${apiName}`}
         />
         </FormGroup>
         {#if showEditField}

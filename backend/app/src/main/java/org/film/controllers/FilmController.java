@@ -38,7 +38,7 @@ public class FilmController {
         this.personRepository = personRepository;
     }
 
-    @PostMapping("/create-film")
+    @PostMapping("/admin/create-film")
     public ResponseEntity<?> createFilm(@Valid @RequestBody FilmRequest filmRequest) {
 
         if (filmRepository.findByFilmName(filmRequest.getFilmName().trim()).isPresent()) {
@@ -83,7 +83,7 @@ public class FilmController {
         return ResponseEntity.ok(savedFilm);
     }
 
-    @PutMapping("/update-film/{id}")
+    @PutMapping("/admin/update-film/{id}")
     public ResponseEntity<?> updateFilm(@PathVariable Long id, @Valid @RequestBody FilmRequest filmRequest) {
 
         Film film = filmRepository.findById(id)
@@ -142,7 +142,7 @@ public class FilmController {
 
 
 
-    @GetMapping("/search-film")
+    @GetMapping("/public/search-film")
     public ResponseEntity<List<Map<String, Object>>> searchFilm(@RequestParam("query") String query) {
         List<Film> films = filmRepository.findByFilmNameContainingIgnoreCase(query);
         List<Map<String, Object>> results = films.stream().map(film -> {
@@ -154,7 +154,7 @@ public class FilmController {
         return ResponseEntity.ok(results);
     }
 
-    @GetMapping("/film/{id}")
+    @GetMapping("/public/film/{id}")
     public ResponseEntity<?> getFilmDetails(@PathVariable Long id) {
         Optional<Film> filmOptional = filmRepository.findById(id);
 
@@ -196,7 +196,7 @@ public class FilmController {
         return ResponseEntity.ok(result);
     }
 
-    @DeleteMapping("/delete-film/{id}")
+    @DeleteMapping("/admin/delete-film/{id}")
     public ResponseEntity<?> deleteFilm(@PathVariable Long id) {
         Optional<Film> filmOptional = filmRepository.findById(id);
         if (filmOptional.isEmpty()) {

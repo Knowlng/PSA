@@ -30,19 +30,20 @@
             [fieldName]: newName
         };
 
-        fetch(`/api/create-${apiName}`, {
+        fetch(`/api/admin/create-${apiName}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            credentials: 'include'
         })
         .then(response => {
             if (!response.ok) {
                 return response.text().then(text => {
-                    if (text.includes("Name already exists")) {
+                    if (text.includes("Entry already exists")) {
                         addToast({
-                            message: "Name already exists",
+                            message: "Entry already exists",
                             type: "error",
                         });                        
                     } else {

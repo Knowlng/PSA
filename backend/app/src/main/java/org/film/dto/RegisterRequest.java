@@ -1,6 +1,7 @@
 package org.film.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
@@ -10,7 +11,11 @@ public class RegisterRequest {
     private String userName;
 
     @NotBlank(message = "Password cannot be empty")
-    @Size(max = 255, message = "Password must not exceed 255 characters")
+    @Size(min = 8, max = 255, message = "Password must be between 8 and 255 characters")
+    @Pattern(
+        regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}$",
+        message = "Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character"
+    )
     private String userPassword;
 
     public String getUserName() {

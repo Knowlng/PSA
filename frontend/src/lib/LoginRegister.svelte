@@ -28,7 +28,7 @@
         const payload = { userName: username, userPassword: password };
 
         if (type === 'login') {
-            fetch(`/api/login`, {
+            fetch(`/api/public/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -52,11 +52,13 @@
                         return null;
                     });
                 }
-                return response.text();
+                return response.json();
             })
             .then(result => {
                 if (result !== null) {
                     localStorage.setItem('userLoggedIn', true);
+                    localStorage.setItem('username', result.username);
+                    localStorage.setItem('role', result.role);
                     window.location.href = '/';
                 }
             })
@@ -82,7 +84,7 @@
                 return;
             }
 
-            fetch(`/api/register`, {
+            fetch(`/api/public/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -156,7 +158,7 @@
             </FormGroup>
         {/if}
         <Container class="d-flex flex-column p-0">
-            <Container class="text-center p-0 mb-3">
+            <Container class="text-center p-0 mb-4">
                 <Button color="primary" on:click={handleSubmit}>
                     {type === 'login' ? 'Login' : 'Register'}
                 </Button>
@@ -165,7 +167,7 @@
                 <a 
                     href={hrefLink} 
                     class="p-0" 
-                    style="text-decoration: none; color: inherit;"
+                    style="text-decoration: underline; color: inherit; font-weight: bold;"
                 >
                     {type === 'login' ? 'Register instead' : 'Login instead'}
                 </a>

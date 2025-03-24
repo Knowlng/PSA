@@ -26,7 +26,7 @@ public class PersonController {
         this.personRepository = personRepository;
     }
 
-    @PostMapping("/create-person")
+    @PostMapping("/admin/create-person")
     public ResponseEntity<?> createPerson(@Valid @RequestBody PersonRequest personRequest) {
 
         Person person = new Person();
@@ -35,7 +35,7 @@ public class PersonController {
             Person savedPerson = personRepository.save(person);
             return ResponseEntity.ok(savedPerson);
         } catch (DataIntegrityViolationException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Name already exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Entry already exists");
         }
     }
 
@@ -51,11 +51,11 @@ public class PersonController {
         return ResponseEntity.ok(results);
     }
 
-    @PutMapping("/update-person/{id}")
+    @PutMapping("/admin/update-person/{id}")
     public ResponseEntity<?> updatePerson(@PathVariable Long id, @Valid @RequestBody PersonRequest personRequest) {
         Optional<Person> existing = personRepository.findByPersonFullName(personRequest.getPersonFullName());
         if(existing.isPresent() && !existing.get().getPerson_id().equals(id)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Name already exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Entry already exists");
         }
         
         Optional<Person> personOptional = personRepository.findById(id);
@@ -69,7 +69,7 @@ public class PersonController {
         return ResponseEntity.ok(updatedPerson);
     }
 
-    @DeleteMapping("/delete-person/{id}")
+    @DeleteMapping("/admin/delete-person/{id}")
     public ResponseEntity<?> deletePerson(@PathVariable Long id) {
         Optional<Person> personOptional = personRepository.findById(id);
         if (!personOptional.isPresent()) {

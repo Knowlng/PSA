@@ -27,6 +27,7 @@
     <p class="text-center">
       {modalBody}
     </p>
+    <slot></slot>
     <Container class="text-center">
       <Button color="danger" class="mt-3" on:click={confirm}>{buttonText}</Button>
     </Container>

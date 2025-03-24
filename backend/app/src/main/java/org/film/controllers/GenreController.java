@@ -27,7 +27,7 @@ public class GenreController {
         this.genreRepository = genreRepository;
     }
 
-    @PostMapping("/create-genre")
+    @PostMapping("/admin/create-genre")
     public ResponseEntity<?> createGenre(@Valid @RequestBody GenreRequest genreRequest) {
 
         Genre genre = new Genre();
@@ -36,13 +36,13 @@ public class GenreController {
             Genre savedGenre = genreRepository.save(genre);
             return ResponseEntity.ok(savedGenre);
         } catch (DataIntegrityViolationException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Name already exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Entry already exists");
         }
     }
 
 
 
-    @GetMapping("/search-genre")
+    @GetMapping("/public/search-genre")
     public ResponseEntity<List<Map<String, Object>>> searchGenre(@RequestParam("query") String query) {
         List<Genre> genres = genreRepository.findByGenreNameContainingIgnoreCase(query);
         List<Map<String, Object>> results = genres.stream().map(genre -> {
@@ -55,12 +55,12 @@ public class GenreController {
     }
 
 
-    @PutMapping("/update-genre/{id}")
+    @PutMapping("/admin/update-genre/{id}")
     public ResponseEntity<?> updateGenre(@PathVariable Long id, @Valid @RequestBody GenreRequest genreRequest) {
         
         Optional<Genre> existing = genreRepository.findByGenreName(genreRequest.getGenreName());
         if(existing.isPresent() && !existing.get().getGenre_id().equals(id)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Name already exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Entry already exists");
         }
         
         Optional<Genre> genreOptional = genreRepository.findById(id);
@@ -74,7 +74,7 @@ public class GenreController {
         return ResponseEntity.ok(updatedGenre);
     }
 
-    @DeleteMapping("/delete-genre/{id}")
+    @DeleteMapping("/admin/delete-genre/{id}")
     @Transactional
     public ResponseEntity<?> deleteGenre(@PathVariable Long id) {
         Optional<Genre> genreOptional = genreRepository.findById(id);

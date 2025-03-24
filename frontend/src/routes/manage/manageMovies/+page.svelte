@@ -72,14 +72,15 @@
       }))
     };
 
-    const req = movieId ? `/update-film/${movieId}` : '/create-film';
+    const req = movieId ? `/admin/update-film/${movieId}` : '/admin/create-film';
 
     fetch(`/api${req}`, {
       method: movieId ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      credentials: 'include'
     })
     .then(async res => {
       response = res;
@@ -165,7 +166,7 @@
     const { id } = event.detail;
 
     try {
-      const response = await fetch(`/api/film/${id}`);
+      const response = await fetch(`/api/public/film/${id}`);
       if (!response.ok) {
         const text = response.text();
         if(text.includes("Film not found")) {
@@ -211,11 +212,12 @@
       return;
     }
     try {
-      const response = await fetch(`/api/delete-film/${movieId}`, {
+      const response = await fetch(`/api/admin/delete-film/${movieId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
       if (!response.ok) {
         const text = await response.text();
@@ -282,7 +284,7 @@
             on:enter={preventEnterSubmit}
             on:select={handleMovieEnter}
             on:fieldFocused={() => movieNameInvalid = false}
-            searchEndpoint={`/api/search-film`}
+            searchEndpoint={`/api/public/search-film`}
           />
         </FormGroup>
         <InputGroup class="mb-4">
@@ -308,7 +310,7 @@
             on:focus={() => grossInvalid = false}
           />
         </InputGroup>
-        <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/search-genre`}/>
+        <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/public/search-genre`}/>
         <ListGroup flush class="mt-4">
           {#each genreArray as { id, name }, index}
           <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">

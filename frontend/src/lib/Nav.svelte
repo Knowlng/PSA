@@ -15,8 +15,10 @@
   } from '@sveltestrap/sveltestrap';
   import { addToast } from "$lib/ToastNotification/toastStore.js";
 
+  let username;
+
   function handleLogout() {
-    fetch(`/api/logout`, {
+    fetch(`/api/public/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -36,6 +38,7 @@
     })
     .then(result => {
       if (result !== null) {
+        localStorage.clear();
         localStorage.setItem('userLoggedIn', false);
         window.location.href = '/';
       }
@@ -54,6 +57,7 @@
     if (window.innerWidth >= 768) {
       isOpen = true;
     }
+    username = localStorage.getItem('username');
   });
 
   function handleUpdate(event) {
@@ -83,20 +87,23 @@
         <Dropdown nav inNavbar>
           <DropdownToggle nav caret>Profile</DropdownToggle>
           <DropdownMenu end>
+            {#if username}
+              <DropdownItem style="font-weight:bold; cursor:default;">Logged in as {username}</DropdownItem>
+            {/if}
             <DropdownItem><NavLink href="/auth/changeUsername">Change Username</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/auth/changePassword">Change Password</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/auth/changePassword">Change Password & Profile settings</NavLink></DropdownItem>
           </DropdownMenu>
         </Dropdown>
       {/if}
-      {#if localStorage.getItem('userLoggedIn') === 'true'}
+      {#if localStorage.getItem('userLoggedIn') === 'true' && localStorage.getItem('role') === 'admin'}
         <Dropdown nav inNavbar>
           <DropdownToggle nav caret>Manage</DropdownToggle>
           <DropdownMenu end>
-            <DropdownItem><NavLink href="/auth/manageMovies">Manage Movies</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/auth/updateGenre">Update Genre</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/auth/createGenre">Create Genre</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/auth/updatePersonnel">Update Personnel</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/auth/createPersonnel">Create Personnel</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/manageMovies">Manage Movies</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/updateGenre">Update Genre</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/createGenre">Create Genre</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/updatePersonnel">Update Personnel</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/createPersonnel">Create Personnel</NavLink></DropdownItem>
           </DropdownMenu>
         </Dropdown>
       {/if}
