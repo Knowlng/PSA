@@ -39,7 +39,7 @@ public class PersonController {
         }
     }
 
-    @GetMapping("/search-person")
+    @GetMapping("/public/search-person")
     public ResponseEntity<List<Map<String, Object>>> searchPerson(@RequestParam("query") String query) {
         List<Person> persons = personRepository.findByPersonFullNameContainingIgnoreCase(query);
         List<Map<String, Object>> results = persons.stream().map(person -> {

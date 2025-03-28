@@ -157,7 +157,7 @@
     }
   }
 
-  function handleActorEnter(event) {
+  function handlePersonEnter(event) {
     const { id, name } = event.detail;
     actorArray = [...actorArray, { id: id, name: name, role: "actor" }];
   }
@@ -310,7 +310,7 @@
             on:focus={() => grossInvalid = false}
           />
         </InputGroup>
-        <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/public/search-genre`}/>
+        <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/public/search-genre`} clearOnSelect={true}/>
         <ListGroup flush class="mt-4">
           {#each genreArray as { id, name }, index}
           <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
@@ -323,7 +323,7 @@
           </ListGroupItem>
         {/each}
         </ListGroup>
-        <SearchField placeholder="Enter Actor Name" maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:select={handleActorEnter} searchEndpoint={`/api/search-person`}/>
+        <SearchField placeholder="Enter Person Name" maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:select={handlePersonEnter} searchEndpoint={`/api/public/search-person`} clearOnSelect={true}/>
         <ListGroup flush class="mt-4">
           {#each actorArray as { id, name}, index}
             <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
@@ -331,7 +331,7 @@
                 {name}
               </Container>
               <Container class="d-flex justify-content-end p-0">
-                <Input type="select" class="w-25" bind:value={actorArray[index].role}>
+                <Input type="select" class="w-50" bind:value={actorArray[index].role}>
                   {#each ["director", "writer", "actor"] as option}
                     <option value={option}>{option}</option>
                   {/each}

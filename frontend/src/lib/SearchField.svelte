@@ -9,6 +9,7 @@
   export let feedback = '';
   export let invalid = false;
   export let searchEndpoint = '';
+  export let clearOnSelect = false;
 
   let debounceTimer;
   const dispatch = createEventDispatcher();
@@ -24,12 +25,6 @@
       
       fetch(`${searchEndpoint}?query=${encodeURIComponent(value)}`)
       .then(response => {
-        if (!response.ok) {
-          addToast({
-            message: "Something went wrong. Please try again later.",
-            type: "error",
-          });
-        }
         return response.json();
       })
       .then(data => {
@@ -47,6 +42,9 @@
 
   function selectSuggestion(suggestion) {
     dispatch('select', { id: suggestion.id, name: suggestion.name });
+    if (clearOnSelect) {
+      value = '';
+    }
     suggestions = [];
   }
 
