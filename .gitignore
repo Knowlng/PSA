@@ -21,5 +21,6 @@
 # Gradle cache and build output
 /backend/.gradle/
 /backend/app/build/
+/backend/app/bin
 
 .vscode

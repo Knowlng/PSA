@@ -348,11 +348,13 @@
                   {/each}
                 </p>
               {/if}
-              
               {#if movie.actors && movie.actors.length > 0}
                 <p>
-                  <strong>Actors:</strong>
-                  {#each movie.actors as actor, i}
+                  <strong>Personnel:</strong>
+                  {#each movie.actors.slice().sort((a, b) => {
+                    const priority = { director: 1, writer: 2, actor: 3 };
+                    return (priority[a.role] || 4) - (priority[b.role] || 4);
+                  }) as actor, i}
                     {actor.name || '-'} ({actor.role || '-'}){i < movie.actors.length - 1 ? ', ' : ''}
                   {/each}
                 </p>
