@@ -1,29 +1,34 @@
 package org.film.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.security.web.context.SecurityContextRepository;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.film.dto.ChangePasswordRequest;
 import org.film.dto.ChangeUsernameRequest;
+import org.film.dto.DeleteAccountRequest;
 import org.film.dto.LoginRequest;
 import org.film.dto.RegisterRequest;
 import org.film.model.User;
 import org.film.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.Cookie;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -187,9 +192,10 @@ public class UserController {
         return ResponseEntity.ok(responseBody);
     }
 
-    
     @PostMapping("/auth/delete-account")
-    public ResponseEntity<?> deleteAccount(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> deleteAccount(@Valid @RequestBody DeleteAccountRequest deleteRequest,
+                                        HttpServletRequest request,
+                                        HttpServletResponse response) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName().equals("anonymousUser")) {
@@ -201,9 +207,13 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
         User user = userOpt.get();
-        
+
+        if (!passwordEncoder.matches(deleteRequest.getPassword(), user.getUserPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid password");
+        }
+
         userRepository.delete(user);
-        
+
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();

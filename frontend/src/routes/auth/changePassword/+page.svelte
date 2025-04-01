@@ -14,7 +14,7 @@
 
     let password = '';
     let repeatedPass = '';
-    let usernameInput = '';
+    let deletePassInput = '';
     let username;
 
     let changeModalOpen = false;
@@ -110,50 +110,52 @@
     }
 
 
-    function confirmDelete() {
-        if(usernameInput.trim() === '') {
+    async function confirmDelete() {
+        if (deletePassInput.trim() === '') {
             addToast({
-                message: "Please enter your username",
+                message: "Please enter your password",
                 type: "error",
-            });   
-            return;
-        } else if(usernameInput !== localStorage.getItem('username')) {
-            addToast({
-                message: "Username does not match",
-                type: "error",
-            });   
+            });
             return;
         }
 
-        fetch(`/api/auth/delete-account`, {
-            method: 'POST',
-            credentials: 'include'
-        })
-        .then(response => {
+        try {
+            const response = await fetch(`/api/auth/delete-account`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: deletePassInput.trim() })
+            });
+
             if (!response.ok) {
-                return response.text().then(text => {
-                    if (text.includes("Not logged in")) {
-                        addToast({
-                            message: "Not logged in",
-                            type: "error",
-                        });
-                    } else if (text.includes("User not found")) {
-                        addToast({
-                            message: "User not found",
-                            type: "error",
-                        });
-                    } else {
-                        addToast({
-                            message: "Something went wrong. Please try again later.",
-                            type: "error",
-                        });
-                    }
-                    return null;
-                });
+                const text = await response.text();
+                if (text.includes("Not logged in")) {
+                    addToast({
+                        message: "Not logged in",
+                        type: "error",
+                    });
+                } else if (text.includes("User not found")) {
+                    addToast({
+                        message: "User not found",
+                        type: "error",
+                    });
+                } else if (text.includes("Invalid password")) {
+                    addToast({
+                        message: "Invalid password",
+                        type: "error",
+                    });
+                } else {
+                    addToast({
+                        message: "Something went wrong. Please try again later.",
+                        type: "error",
+                    });
+                }
+                return;
             }
-            return response.text();
-        })
-        .then(result => {
+
+            const result = await response.text();
             if (result !== null) {
                 localStorage.clear();
                 window.location.href = '/';
@@ -162,15 +164,14 @@
                     type: "success",
                 });
             }
-        })
-        .catch(error => {
+        } catch (error) {
             addToast({
                 message: "Something went wrong. Please try again later.",
                 type: "error",
             });
-        });
-
+        }
     }
+
 
     onMount(() => {
         username = localStorage.getItem('username');
@@ -219,13 +220,13 @@
         modalTitle={"Are you sure you want to delete your account?"}
         modalBody={"This action cannot be undone!"}
         buttonText="Delete"
-        on:toggle={() => { deleteAccountModalOpen = false; usernameInput = ''; }}
+        on:toggle={() => { deleteAccountModalOpen = false; deletePassInput = ''; }}
         on:confirm={confirmDelete}
     >
         <Form> 
             <FormGroup class="text-center">
-                <Label>Type in <strong>{username}</strong> to delete your account</Label>
-                <Input bind:value={usernameInput} maxlength={USER_NAME_LENGTH} placeholder="username" />
+                <Label>Type in your <strong>password</strong> to delete your account</Label>
+                <Input bind:value={deletePassInput} maxlength={USER_PASS_LENGTH} placeholder="password" type="password"/>
             </FormGroup>
         </Form>
     </Modal>

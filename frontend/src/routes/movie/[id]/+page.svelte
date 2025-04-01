@@ -128,5 +128,10 @@
   button {
     all: unset;
     cursor: pointer;
+    text-decoration: underline;
+  }
+
+  button:hover {
+    color: var(--information);
   }
 </style>

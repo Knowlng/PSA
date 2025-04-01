@@ -314,22 +314,29 @@
             </Container>
         {/if}
     </Container>
-    <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 450px; max-width: 700px;">
-        <Container>Total pages: {totalPages}</Container>
-        <Container class="text-center">Total Entries: {totalEntries}</Container>
-        <Container style="min-width: 100px; max-width: 100px;" class="text-end p-0 d-flex align-items-center justify-content-end">
-            <Label class="m-0" for="perPage">Per page:</Label>
+    {#if movies && movies.length > 0}
+        <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 450px; max-width: 700px;">
+            <Container>Total pages: {totalPages}</Container>
+            <Container class="text-center">Total Entries: {totalEntries}</Container>
+            <Container style="min-width: 100px; max-width: 100px;" class="text-end p-0 d-flex align-items-center justify-content-end">
+                <Label class="m-0" for="perPage">Per page:</Label>
+            </Container>
+            <Container style="min-width: 100px; max-width: 100px;">
+                <select key={perPage} type="select" bind:value={perPage} on:change={handlePerPageChange}>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="75">75</option>
+                    <option value="100">100</option>
+                </select>
+            </Container>
         </Container>
-        <Container style="min-width: 100px; max-width: 100px;">
-            <select key={perPage} type="select" bind:value={perPage} on:change={handlePerPageChange}>
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="75">75</option>
-                <option value="100">100</option>
-            </select>
+    {:else}
+        <Container class="text-center mt-4">
+            <h4>No movies found</h4>
+            <h4>Try altering your search parameters</h4>
         </Container>
-    </Container>
+    {/if}
     <Container class="p-0 movie-entry mb-4" style="min-width: 450px; max-width: 700px;">
         {#each movies as movie, index (movie.id)}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
