@@ -43,6 +43,11 @@
                                 message: "Invalid username or password",
                                 type: "error",
                             });
+                        } else if (text.includes("User account is disabled")) {
+                            addToast({
+                                message: "User account is disabled",
+                                type: "error",
+                            });
                         } else {
                             addToast({
                                 message: "Something went wrong. Please try again later.",

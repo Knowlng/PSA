@@ -78,10 +78,18 @@
         <NavLink href="/register">Register</NavLink>
       </NavItem>
       {/if}
-      {#if localStorage.getItem('userLoggedIn') === 'true'}
-        <NavItem>
-          <NavLink on:click={handleLogout}>Logout</NavLink>
-        </NavItem>
+      {#if localStorage.getItem('userLoggedIn') === 'true' && localStorage.getItem('role') === 'admin'}
+        <Dropdown nav inNavbar>
+          <DropdownToggle nav caret>Manage</DropdownToggle>
+          <DropdownMenu end>
+            <DropdownItem><NavLink href="/manage/manageMovies">Manage Movies</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/updateGenre">Update Genre</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/createGenre">Create Genre</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/updatePersonnel">Update Personnel</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/createPersonnel">Create Personnel</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/manageUsers">Manage Users</NavLink></DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
       {/if}
       {#if localStorage.getItem('userLoggedIn') === 'true'}
         <Dropdown nav inNavbar>
@@ -95,17 +103,10 @@
           </DropdownMenu>
         </Dropdown>
       {/if}
-      {#if localStorage.getItem('userLoggedIn') === 'true' && localStorage.getItem('role') === 'admin'}
-        <Dropdown nav inNavbar>
-          <DropdownToggle nav caret>Manage</DropdownToggle>
-          <DropdownMenu end>
-            <DropdownItem><NavLink href="/manage/manageMovies">Manage Movies</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/updateGenre">Update Genre</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/createGenre">Create Genre</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/updatePersonnel">Update Personnel</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/createPersonnel">Create Personnel</NavLink></DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+      {#if localStorage.getItem('userLoggedIn') === 'true'}
+        <NavItem>
+          <NavLink on:click={handleLogout}>Logout</NavLink>
+        </NavItem>
       {/if}
     </Nav>
   </Collapse>

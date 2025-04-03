@@ -1,8 +1,10 @@
 package org.film.controllers;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.film.dto.ChangePasswordRequest;
 import org.film.dto.ChangeUsernameRequest;
@@ -16,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,9 +26,12 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.Cookie;
@@ -74,7 +80,9 @@ public class UserController {
             responseBody.put("message", "Logged in successfully");
 
             return ResponseEntity.ok(responseBody);
-
+        
+        } catch (DisabledException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User account is disabled");
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
@@ -226,5 +234,57 @@ public class UserController {
         response.addCookie(cookie);
         
         return ResponseEntity.ok("Account deleted successfully");
+    }
+
+    @GetMapping("/admin/search-user")
+    public ResponseEntity<List<Map<String, Object>>> searchUser(@RequestParam("query") String query) {
+        List<User> users = userRepository.findByUserNameContainingIgnoreCase(query);
+        List<Map<String, Object>> results = users.stream().map(user -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", user.getUserId());
+            map.put("name", user.getUserName());
+            return map;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/admin/user/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("userId", user.getUserId());
+        result.put("userName", user.getUserName());
+        result.put("userRole", user.getUserRole());
+        result.put("enabled", user.getEnabled());
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/admin/disable-user/{id}")
+    public ResponseEntity<?> disableUser(@PathVariable Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+        user.setEnabled(false);
+        userRepository.save(user);
+        return ResponseEntity.ok("User disabled successfully");
+    }
+
+    @PostMapping("/admin/enable-user/{id}")
+    public ResponseEntity<?> enableUser(@PathVariable Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+        user.setEnabled(true);
+        userRepository.save(user);
+        return ResponseEntity.ok("User enabled successfully");
     }
 }
