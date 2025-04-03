@@ -86,12 +86,11 @@ public class FilmController {
                 Person person = personRepository.findById(fpReq.getPersonId())
                     .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.BAD_REQUEST, "Person not found with id " + fpReq.getPersonId()));
-
                 FilmPerson filmPerson = new FilmPerson();
                 filmPerson.setFilm(film);
                 filmPerson.setPerson(person);
                 filmPerson.setRole(fpReq.getRole());
-
+        
                 film.getFilmPersons().add(filmPerson);
             }
         }
@@ -130,28 +129,24 @@ public class FilmController {
 
         film.getFilmPersons().clear();
         if (filmRequest.getPersons() != null && !filmRequest.getPersons().isEmpty()) {
-            Set<Long> processedPersonIds = new HashSet<>();
+            film.getFilmPersons().clear();
             for (var fpReq : filmRequest.getPersons()) {
-                if (!processedPersonIds.add(fpReq.getPersonId())) {
-                    continue;
-                }
                 Person person = personRepository.findById(fpReq.getPersonId())
                     .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.BAD_REQUEST, "Person not found with id " + fpReq.getPersonId()));
-
+        
                 FilmPerson filmPerson = new FilmPerson();
                 FilmPersonId filmPersonId = new FilmPersonId();
                 filmPersonId.setFilmId(film.getFilmId());
                 filmPersonId.setPersonId(person.getPerson_id());
-
                 filmPerson.setId(filmPersonId);
                 filmPerson.setFilm(film);
                 filmPerson.setPerson(person);
                 filmPerson.setRole(fpReq.getRole());
-
+        
                 film.getFilmPersons().add(filmPerson);
             }
-        }
+        }        
 
         Film updatedFilm = filmRepository.save(film);
         return ResponseEntity.ok(updatedFilm);
@@ -257,7 +252,7 @@ public class FilmController {
                     Join<Film, FilmPerson> fpJoin = root.join("filmPersons", JoinType.INNER);
                     Predicate actorPredicate = cb.equal(fpJoin.get("person").get("person_id"), af.getActorId());
                     if (af.getRole() != null && !af.getRole().equalsIgnoreCase("any role")) {
-                        actorPredicate = cb.and(actorPredicate, cb.equal(fpJoin.get("role"), af.getRole()));
+                        actorPredicate = cb.and(actorPredicate, cb.equal(fpJoin.get("id").get("role"), af.getRole()));
                     }
                     return actorPredicate;
                 });
