@@ -11,7 +11,7 @@
   import { Spinner } from '@sveltestrap/sveltestrap';
 
   let loadingFilm = true;
-  let loadingRating = false;
+  let loadingRating = true;
 
   let filmId = $page.params.id;
   let filmDetails;
@@ -19,6 +19,7 @@
 
   let rating ='';
   let currentRating = 0;
+  let averageRating = 0;
 
   $: directors = filmDetails?.actors
     ? filmDetails.actors.filter(actor => actor.role.toLowerCase() === 'director')
@@ -29,6 +30,32 @@
   $: actors = filmDetails?.actors
     ? filmDetails.actors.filter(actor => actor.role.toLowerCase() === 'actor')
     : [];
+
+  async function fetchAverageRating() {
+    try {
+      const response = await fetch(`/api/public/film/${filmId}/average-rating`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        addToast({
+          message: "Something went wrong. Please try again later.",
+          type: "error",
+        });
+        return;
+      }
+      
+      const data = await response.json();
+      averageRating = data.averageRating;
+    } catch (error) {
+      addToast({
+        message: "Something went wrong. Please try again later.",
+        type: "error",
+      });
+    }
+    loadingRating = false;
+  }
 
   async function getMovieInfo() {
     try {
@@ -132,6 +159,7 @@
         type: "error",
       });
     }
+    fetchAverageRating();
   }
 
   async function fetchUserFilmRating() {
@@ -170,8 +198,8 @@
 
   onMount(() => {
     getMovieInfo();
+    fetchAverageRating();
     if(localStorage.getItem('userLoggedIn') === 'true') {
-      loadingRating = true;
       fetchUserFilmRating();
     }
   });
@@ -236,7 +264,8 @@
     {:else}
       <Container class="d-flex flex-column align-items-center justify-content-center">
         <Container class="d-flex justify-content-center align-items-center">
-          <p class="m-0"><strong>Overall rating:</strong></p>
+          <p class="mb-0 me-2"><strong>Overall rating:</strong></p>
+          <strong><span class="me-1" style="font-size: 1.5rem;">{averageRating}</span></strong>
         <Star filled={true} color="yellow" size={40}/>
         </Container>
         {#if localStorage.getItem('userLoggedIn') === 'true'}
@@ -256,7 +285,7 @@
   </Container>
   <Container>
     <h5><strong>Description</strong></h5>
-    <p class='ps-3'>{filmDetails?.filmDesc || ''}</p>
+    <p class='ps-3 long-text'>{filmDetails?.filmDesc || ''}</p>
   </Container>
 {/if}
 {#if modalOpen}
@@ -288,5 +317,11 @@
 
   button:hover {
     color: var(--information);
+  }
+
+  .long-text {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
 </style>

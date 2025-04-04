@@ -237,13 +237,14 @@ public class FilmController {
 
     @SuppressWarnings("unused")
     @PostMapping("/public/films/filter")
-    public ResponseEntity<Page<Map<String, Object>>> filterFilms(@RequestBody FilmFilterRequest filterRequest) {
+    public ResponseEntity<Page<Map<String, Object>>> filterFilms(
+            @RequestBody FilmFilterRequest filterRequest, Authentication auth) {
         int pageIndex = Math.max(filterRequest.getPage() - 1, 0);
         Pageable pageable = PageRequest.of(pageIndex, filterRequest.getSize());
         Specification<Film> spec = Specification.where(null);
 
         if (filterRequest.getMovieName() != null && !filterRequest.getMovieName().trim().isEmpty()) {
-            spec = spec.and((root, query, cb) -> 
+            spec = spec.and((root, query, cb) ->
                 cb.like(cb.lower(root.get("filmName")), "%" + filterRequest.getMovieName().trim().toLowerCase() + "%")
             );
         }
@@ -251,16 +252,24 @@ public class FilmController {
             spec = spec.and((root, query, cb) -> root.get("filmRating").in(filterRequest.getSelectedAgeRatings()));
         }
         if (filterRequest.getFromDate() != null) {
-            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("filmReleaseDate"), filterRequest.getFromDate()));
+            spec = spec.and((root, query, cb) ->
+                cb.greaterThanOrEqualTo(root.get("filmReleaseDate"), filterRequest.getFromDate())
+            );
         }
         if (filterRequest.getToDate() != null) {
-            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("filmReleaseDate"), filterRequest.getToDate()));
+            spec = spec.and((root, query, cb) ->
+                cb.lessThanOrEqualTo(root.get("filmReleaseDate"), filterRequest.getToDate())
+            );
         }
         if (filterRequest.getMinGross() != null) {
-            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("filmGross"), filterRequest.getMinGross()));
+            spec = spec.and((root, query, cb) ->
+                cb.greaterThanOrEqualTo(root.get("filmGross"), filterRequest.getMinGross())
+            );
         }
         if (filterRequest.getMaxGross() != null) {
-            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("filmGross"), filterRequest.getMaxGross()));
+            spec = spec.and((root, query, cb) ->
+                cb.lessThanOrEqualTo(root.get("filmGross"), filterRequest.getMaxGross())
+            );
         }
         if (filterRequest.getActorFilters() != null && !filterRequest.getActorFilters().isEmpty()) {
             for (ActorFilter af : filterRequest.getActorFilters()) {
@@ -278,6 +287,25 @@ public class FilmController {
             spec = spec.and((root, query, cb) -> {
                 Join<Film, Genre> genreJoin = root.join("genres", JoinType.INNER);
                 return genreJoin.get("genre_id").in(filterRequest.getGenreIds());
+            });
+        }
+
+        if (filterRequest.getMinRating() != null) {
+            spec = spec.and((root, query, cb) -> {
+                jakarta.persistence.criteria.Subquery<Double> avgSubquery = query.subquery(Double.class);
+                jakarta.persistence.criteria.Root<UserFilm> uf = avgSubquery.from(UserFilm.class);
+                avgSubquery.select(cb.avg(uf.get("rating")));
+                avgSubquery.where(cb.equal(uf.get("film").get("filmId"), root.get("filmId")));
+                return cb.greaterThanOrEqualTo(avgSubquery, filterRequest.getMinRating());
+            });
+        }
+        if (filterRequest.getMaxRating() != null) {
+            spec = spec.and((root, query, cb) -> {
+                jakarta.persistence.criteria.Subquery<Double> avgSubquery = query.subquery(Double.class);
+                jakarta.persistence.criteria.Root<UserFilm> uf = avgSubquery.from(UserFilm.class);
+                avgSubquery.select(cb.avg(uf.get("rating")));
+                avgSubquery.where(cb.equal(uf.get("film").get("filmId"), root.get("filmId")));
+                return cb.lessThanOrEqualTo(avgSubquery, filterRequest.getMaxRating());
             });
         }
 
@@ -309,6 +337,28 @@ public class FilmController {
 
             result.put("actors", actors);
             result.put("genres", genres);
+
+            List<UserFilm> filmRatings = userFilmRepository.findByIdFilmId(film.getFilmId());
+            if (!filmRatings.isEmpty()) {
+                double average = filmRatings.stream().mapToInt(UserFilm::getRating).average().orElse(0.0);
+                double roundedAverage = Math.round(average * 10.0) / 10.0;
+                result.put("averageRating", roundedAverage);
+            }
+
+            if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+                Optional<User> userOpt = userRepository.findByUserName(auth.getName());
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    UserFilmId userFilmId = new UserFilmId();
+                    userFilmId.setUserId(user.getUserId());
+                    userFilmId.setFilmId(film.getFilmId());
+                    Optional<UserFilm> userFilmOpt = userFilmRepository.findById(userFilmId);
+                    if (userFilmOpt.isPresent()) {
+                        result.put("userRating", userFilmOpt.get().getRating());
+                    }
+                }
+            }
+
             return result;
         });
 
@@ -381,4 +431,20 @@ public class FilmController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/public/film/{filmId}/average-rating")
+    public ResponseEntity<?> getAverageFilmRating(@PathVariable Long filmId) {
+        List<UserFilm> ratings = userFilmRepository.findByIdFilmId(filmId);
+        
+        if (ratings.isEmpty()) {
+            return ResponseEntity.ok(new HashMap<>());
+        }
+        
+        double average = ratings.stream().mapToInt(UserFilm::getRating).average().orElse(0.0);
+        double roundedAverage = Math.round(average * 10.0) / 10.0;
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("averageRating", roundedAverage);
+        
+        return ResponseEntity.ok(result);
+    }
 }

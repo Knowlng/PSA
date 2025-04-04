@@ -14,6 +14,8 @@ public class FilmFilterRequest {
     private List<Long> genreIds;
     private int page = 0;
     private int size = 10;
+    private Double minRating;
+    private Double maxRating;
 
     public String getMovieName() {
         return movieName;
@@ -89,5 +91,21 @@ public class FilmFilterRequest {
 
     public void setSize(int size) {
         this.size = size;
+    }
+
+    public Double getMinRating() {
+        return minRating;
+    }
+
+    public void setMinRating(Double minRating) {
+        this.minRating = minRating;
+    }
+
+    public Double getMaxRating() {
+        return maxRating;
+    }
+    
+    public void setMaxRating(Double maxRating) {
+        this.maxRating = maxRating;
     }
 }

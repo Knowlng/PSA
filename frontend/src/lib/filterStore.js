@@ -9,6 +9,8 @@ export const filterStore = writable({
   maxGross: '',
   genreName: '',
   actorName: '',
+  minRating: '',
+  maxRating: '',
   selectedAgeRatings: [],
   genreArray: [],
   actorArray: [],

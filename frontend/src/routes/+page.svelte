@@ -6,7 +6,9 @@
         MAX_MOVIE_NAME_LENGTH,
         MAX_GENRE_SEARCH_LENGTH,
         MAX_PERSON_SEARCH_LENGTH,
-        MAX_GROSS
+        MAX_GROSS,
+        MAX_RATING,
+        MIN_RATING
     } from '$lib/consts.js';
     import { onMount } from 'svelte';
     import { addToast } from "$lib/ToastNotification/toastStore.js";
@@ -14,6 +16,7 @@
     import { get } from 'svelte/store';
     import { goto } from '$app/navigation'
     import { Spinner } from '@sveltestrap/sveltestrap';
+    import Star from '$lib/Star.svelte';
 
     let loading = true;
 
@@ -27,6 +30,8 @@
     let maxGross = '';
     let genreName = '';
     let actorName = '';
+    let minRating = '';
+    let maxRating = '';
 
     let selectedAgeRatings = [];
     let genreArray = [];
@@ -53,6 +58,8 @@
             maxGross,
             genreName,
             actorName,
+            minRating,
+            maxRating,
             selectedAgeRatings,
             genreArray,
             actorArray,
@@ -80,6 +87,8 @@
         toDate = '';
         minGross = '';
         maxGross = '';
+        minRating = '';
+        maxRating = '';
         actorArray = [];
         actorName = '';
         genreArray = [];
@@ -144,6 +153,8 @@
             toDate: toDate,
             minGross: minGross,
             maxGross: maxGross,
+            minRating: minRating,
+            maxRating: maxRating,
             actorFilters: actorArray,
             genreIds: genreIdsArray,
             page: page,
@@ -196,6 +207,8 @@
             toDate = storedFilters.toDate || '';
             minGross = storedFilters.minGross || '';
             maxGross = storedFilters.maxGross || '';
+            minRating = storedFilters.minRating || '';
+            maxRating = storedFilters.maxRating || '';
             genreName = storedFilters.genreName || '';
             actorName = storedFilters.actorName || '';
             selectedAgeRatings = storedFilters.selectedAgeRatings || [];
@@ -270,6 +283,24 @@
                             bind:value={maxGross}
                         />
                         <InputGroupText>$</InputGroupText>
+                    </Container>
+                    <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center">
+                        <p class="mb-0">From</p>
+                        <Input 
+                            placeholder="User Rating"
+                            type="number" step="0.1"
+                            max={MAX_RATING}
+                            min={MIN_RATING}
+                            bind:value={minRating}
+                        />
+                        <p class="mb-0">To</p>
+                        <Input 
+                            placeholder="User Rating"
+                            type="number" step="0.1"
+                            max={MAX_RATING}
+                            min={MIN_RATING}
+                            bind:value={maxRating}
+                        />
                     </Container>
                     <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/public/search-genre`} clearOnSelect={true}/>
                     <ListGroup flush class="mt-3">
@@ -374,9 +405,29 @@
                 </p>
               {/if}              
             </Container>
-            <Container class="p-0">
-                <h5 class="pt-1">Brief description</h5>
-                <p>{movie.filmDesc?.length > 100 ? movie.filmDesc.slice(0, 100) + ' <..>' : movie.filmDesc || '-'}</p>
+            <Container class="p-0 d-flex flex-column">
+                <Container class="p-0 d-flex flex-column justify-content-center align-items-center">
+                    <Container class="d-flex p-0 justify-content-center align-items-center">
+                        <p class="mb-0 me-2"><strong>Overall rating:</strong></p>
+                        <strong><span class="me-1" style="font-size: 1.5rem;">{movie.averageRating ? movie.averageRating : '-' }</span></strong>
+                        <Star size={32} color="yellow" outlined={true}/>
+                    </Container>
+                    {#if localStorage.getItem('userLoggedIn') === 'true'}
+                    <Container class="d-flex p-0 justify-content-center align-items-center">
+                        <p class="mb-0 me-2"><strong>Your rating:</strong></p>
+                        <strong><span class="me-1" style="font-size: 1.5rem;">{movie.userRating ? movie.userRating : '-'}</span></strong>
+                        <Star size={32} color="blue" filled={movie.userRating ? true : false} />
+                    </Container>
+                    {/if}
+                </Container>
+                <Container class="">
+                    <h5 class="pt-1">Brief description</h5>
+                    <Container class="p-0 m-0" style="max-width: 300px;">
+                        <p class="long-text">
+                            {movie.filmDesc?.length > 100 ? movie.filmDesc.slice(0, 100) + ' <..>' : movie.filmDesc || '-'}
+                        </p>
+                    </Container>
+                </Container>
             </Container>
         </div>
         {/each}
@@ -419,5 +470,11 @@
         line-height: 1.5;
         background-size: 8px 10px;
         border-radius: 0.25rem;
+    }
+
+    .long-text {
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
     }
 </style>

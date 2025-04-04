@@ -5,15 +5,19 @@
   export let color = 'yellow';
   export let size = 24;
   export let clickable = false;
+  export let outlined = false;
 
   const dispatch = createEventDispatcher();
 
-  $: computedColor = (color === 'blue') 
-      ? "var(--information)" 
-      : (color === 'yellow') 
-          ? "var(--putty)" 
+  $: computedColor = (color === 'blue')
+      ? "var(--information)"
+      : (color === 'yellow')
+          ? "var(--putty)"
           : color;
   $: cursorStyle = clickable ? "cursor: pointer;" : "";
+  
+  $: fillColor = outlined ? "none" : (filled ? computedColor : "none");
+  $: strokeColor = outlined ? "black" : computedColor;
 
   function handleClick(event) {
     dispatch('click', { event });
@@ -27,8 +31,8 @@
   width={size}
   height={size}
   viewBox="0 0 24 24"
-  fill={filled ? computedColor : "none"}
-  stroke={computedColor}
+  fill={fillColor}
+  stroke={strokeColor}
   stroke-width="2"
   stroke-linecap="round"
   stroke-linejoin="round"
