@@ -11,20 +11,27 @@ import java.util.stream.Collectors;
 import org.film.dto.ActorFilter;
 import org.film.dto.FilmFilterRequest;
 import org.film.dto.FilmRequest;
+import org.film.dto.RateFilmRequest;
 import org.film.model.Film;
 import org.film.model.FilmPerson;
 import org.film.model.FilmPersonId;
 import org.film.model.Genre;
 import org.film.model.Person;
+import org.film.model.User;
+import org.film.model.UserFilm;
+import org.film.model.UserFilmId;
 import org.film.repository.FilmRepository;
 import org.film.repository.GenreRepository;
 import org.film.repository.PersonRepository;
+import org.film.repository.UserFilmRepository;
+import org.film.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,10 +56,19 @@ public class FilmController {
     private final GenreRepository genreRepository;
     private final PersonRepository personRepository;
 
-    public FilmController(FilmRepository filmRepository, GenreRepository genreRepository, PersonRepository personRepository) {
+    private final UserRepository userRepository;
+    private final UserFilmRepository userFilmRepository;
+
+    public FilmController(FilmRepository filmRepository, 
+                          GenreRepository genreRepository, 
+                          PersonRepository personRepository,
+                          UserRepository userRepository,
+                          UserFilmRepository userFilmRepository) {
         this.filmRepository = filmRepository;
         this.genreRepository = genreRepository;
         this.personRepository = personRepository;
+        this.userRepository = userRepository;
+        this.userFilmRepository = userFilmRepository;
     }
 
     @PostMapping("/admin/create-film")
@@ -299,5 +315,70 @@ public class FilmController {
         return ResponseEntity.ok(resultPage);
     }
 
+    @PostMapping("/auth/rate-film")
+    public ResponseEntity<?> rateFilm(@Valid @RequestBody RateFilmRequest rateRequest, Authentication auth) {
+        if (rateRequest.getRating() < 1 || rateRequest.getRating() > 10) {
+            return ResponseEntity.badRequest().body("Rating must be between 1 and 10");
+        }
+        
+        String username = auth.getName();
+        Optional<User> userOpt = userRepository.findByUserName(username);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+        
+        Optional<Film> filmOpt = filmRepository.findById(rateRequest.getFilmId());
+        if (!filmOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Film not found");
+        }
+        Film film = filmOpt.get();
+        
+        UserFilmId id = new UserFilmId();
+        id.setUserId(user.getUserId());
+        id.setFilmId(film.getFilmId());
+        
+        Optional<UserFilm> existingRating = userFilmRepository.findById(id);
+        UserFilm uf;
+        if (existingRating.isPresent()) {
+            uf = existingRating.get();
+            uf.setRating(rateRequest.getRating());
+        } else {
+            uf = new UserFilm();
+            uf.setId(id);
+            uf.setUser(user);
+            uf.setFilm(film);
+            uf.setRating(rateRequest.getRating());
+        }
+        
+        userFilmRepository.save(uf);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("rating", uf.getRating());
+        return ResponseEntity.ok(result);
+    }
+
+
+    @GetMapping("/auth/film-rating")
+    public ResponseEntity<?> getFilmRating(@RequestParam("filmId") Long filmId, Authentication auth) {
+        String username = auth.getName();
+        Optional<User> userOpt = userRepository.findByUserName(username);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+        
+        UserFilmId id = new UserFilmId();
+        id.setUserId(user.getUserId());
+        id.setFilmId(filmId);
+        
+        Optional<UserFilm> ratingOpt = userFilmRepository.findById(id);
+        
+        Map<String, Object> result = new HashMap<>();
+        if (ratingOpt.isPresent()) {
+            result.put("rating", ratingOpt.get().getRating());
+        }
+        return ResponseEntity.ok(result);
+    }
 
 }

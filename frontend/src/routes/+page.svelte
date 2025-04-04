@@ -13,6 +13,9 @@
     import { filterStore } from '$lib/filterStore.js';
     import { get } from 'svelte/store';
     import { goto } from '$app/navigation'
+    import { Spinner } from '@sveltestrap/sveltestrap';
+
+    let loading = true;
 
     let movieName = '';
     let filterOpen = false;
@@ -126,10 +129,10 @@
         const { page } = event.detail;
         currentPage = page;
         fetchMovies(page, Number(perPage));
-
     }
 
     async function fetchMovies(page, perPage) {
+        loading = true;
         let genreIdsArray = [];
         if (genreArray.length > 0) {
             genreIdsArray = genreArray.map(genre => genre.id);
@@ -175,6 +178,7 @@
                 type: "error",
             });
         }
+        loading = false;
     }
     
     function handlePerPageChange(event) {
@@ -206,7 +210,6 @@
     });
     
 </script>
-
 <Container class="mt-5 p-0">
     <h1 class="text-center mb-5">Search Movies</h1>
     <Form class='mb-5'>
@@ -314,7 +317,11 @@
             </Container>
         {/if}
     </Container>
-    {#if movies && movies.length > 0}
+    {#if loading}
+    <Container class="d-flex justify-content-center align-items-center">
+        <Spinner color="warning"/>
+    </Container>
+    {:else if movies && movies.length > 0}
         <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 450px; max-width: 700px;">
             <Container>Total pages: {totalPages}</Container>
             <Container class="text-center">Total Entries: {totalEntries}</Container>
