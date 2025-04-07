@@ -9,9 +9,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.film.dto.ActorFilter;
+import org.film.dto.CommentFilterRequest;
+import org.film.dto.CommentRequest;
 import org.film.dto.FilmFilterRequest;
 import org.film.dto.FilmRequest;
 import org.film.dto.RateFilmRequest;
+import org.film.model.Comment;
+import org.film.model.CommentId;
 import org.film.model.Film;
 import org.film.model.FilmPerson;
 import org.film.model.FilmPersonId;
@@ -20,12 +24,14 @@ import org.film.model.Person;
 import org.film.model.User;
 import org.film.model.UserFilm;
 import org.film.model.UserFilmId;
+import org.film.repository.CommentRepository;
 import org.film.repository.FilmRepository;
 import org.film.repository.GenreRepository;
 import org.film.repository.PersonRepository;
 import org.film.repository.UserFilmRepository;
 import org.film.repository.UserRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -58,12 +64,15 @@ public class FilmController {
 
     private final UserRepository userRepository;
     private final UserFilmRepository userFilmRepository;
+    private final CommentRepository commentRepository;
 
     public FilmController(FilmRepository filmRepository, 
                           GenreRepository genreRepository, 
                           PersonRepository personRepository,
                           UserRepository userRepository,
-                          UserFilmRepository userFilmRepository) {
+                          UserFilmRepository userFilmRepository,
+                          CommentRepository commentRepository) {
+        this.commentRepository = commentRepository;
         this.filmRepository = filmRepository;
         this.genreRepository = genreRepository;
         this.personRepository = personRepository;
@@ -447,4 +456,126 @@ public class FilmController {
         
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/auth/comment")
+    public ResponseEntity<?> saveComment(@Valid @RequestBody CommentRequest commentRequest, Authentication auth) {
+        String username = auth.getName();
+        Optional<User> userOpt = userRepository.findByUserName(username);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+        
+        Optional<Film> filmOpt = filmRepository.findById(commentRequest.getFilmId());
+        if (!filmOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Film not found");
+        }
+        Film film = filmOpt.get();
+        
+        CommentId id = new CommentId();
+        id.setUserId(user.getUserId());
+        id.setFilmId(film.getFilmId());
+        
+        Optional<Comment> existingComment = commentRepository.findById(id);
+        Comment comment;
+        if (existingComment.isPresent()) {
+            comment = existingComment.get();
+            comment.setCommentText(commentRequest.getCommentText());
+        } else {
+            comment = new Comment();
+            comment.setId(id);
+            comment.setCommentText(commentRequest.getCommentText());
+        }
+        
+        commentRepository.save(comment);
+        return ResponseEntity.ok("Comment saved successfully");
+    }
+
+    @GetMapping("/auth/comment")
+    public ResponseEntity<?> getComment(@RequestParam("filmId") Long filmId, Authentication auth) {
+        String username = auth.getName();
+        Optional<User> userOpt = userRepository.findByUserName(username);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+        
+        CommentId id = new CommentId();
+        id.setUserId(user.getUserId());
+        id.setFilmId(filmId);
+        
+        Optional<Comment> commentOpt = commentRepository.findById(id);
+        Map<String, Object> result = new HashMap<>();
+        if (commentOpt.isPresent()) {
+            result.put("commentText", commentOpt.get().getCommentText());
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/public/film/comments")
+    public ResponseEntity<Page<Map<String, Object>>> getCommentsForFilm(
+            @RequestBody CommentFilterRequest commentFilterRequest,
+            Authentication auth) {
+
+        Long filmId = commentFilterRequest.getFilmId();
+        int page = Math.max(commentFilterRequest.getPage() - 1, 0);
+        int size = commentFilterRequest.getSize();
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Comment> commentPage = commentRepository.findByIdFilmId(filmId, pageable);
+
+        List<Comment> filteredComments = commentPage.getContent().stream()
+                .filter(comment -> comment.getCommentText() != null && !comment.getCommentText().trim().isEmpty())
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> resultList = filteredComments.stream().map(comment -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("userId", comment.getId().getUserId());
+            map.put("filmId", comment.getId().getFilmId());
+            map.put("commentText", comment.getCommentText());
+            Optional<User> commentUser = userRepository.findById(comment.getId().getUserId());
+            map.put("userName", commentUser.map(User::getUserName).orElse("Unknown"));
+
+            UserFilmId userFilmId = new UserFilmId();
+            userFilmId.setUserId(comment.getId().getUserId());
+            userFilmId.setFilmId(comment.getId().getFilmId());
+
+            Optional<UserFilm> userFilmOpt = userFilmRepository.findById(userFilmId);
+            map.put("userRating", userFilmOpt.map(UserFilm::getRating).orElse(null));
+
+            return map;
+        }).collect(Collectors.toList());
+
+
+        Page<Map<String, Object>> resultPage = new PageImpl<>(resultList, pageable, commentPage.getTotalElements());
+
+        return ResponseEntity.ok(resultPage);
+    }
+
+    @DeleteMapping("/auth/comment")
+    public ResponseEntity<?> deleteComment(@RequestParam("filmId") Long filmId, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        String username = auth.getName();
+        Optional<User> userOpt = userRepository.findByUserName(username);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+
+        CommentId commentId = new CommentId();
+        commentId.setUserId(user.getUserId());
+        commentId.setFilmId(filmId);
+
+        Optional<Comment> commentOpt = commentRepository.findById(commentId);
+        if (commentOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
+        }
+
+        commentRepository.deleteById(commentId);
+        return ResponseEntity.ok("Comment deleted successfully");
+    }
+
 }
