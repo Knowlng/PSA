@@ -393,6 +393,7 @@
       });
     }
   }
+
   function saveComment() {
     setTimeout(() => {
       localStorage.setItem('yourReview' + filmId, commentText);
@@ -400,9 +401,60 @@
     }, 0);
   }
 
-  async function handleLikeToggle() {
+  async function handleCommentRate(event) {
+    const { rating, userId } = event.detail;
+    let commentUserId = userId;
+    let commentRating = rating;
 
+    const payload = {
+      filmId,
+      commentUserId,
+      commentRating
+    };
+
+    try {
+      const response = await fetch('/api/auth/rate-comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        if (text.includes("User not found")) {
+          addToast({
+            message: "User not found",
+            type: "error"
+          });
+        } else if (text.includes("Film not found")) {
+          addToast({
+            message: "Film not found",
+            type: "error"
+          });
+        } else if (text.includes("Comment not found")) {
+          addToast({
+            message: "Comment not found",
+            type: "error"
+          });
+        } else {
+          addToast({
+            message: "Something went wrong. Please try again later.",
+            type: "error"
+          });
+        }
+        return;
+      }
+
+    } catch (error) {
+      addToast({
+        message: "Something went wrong. Please try again later.",
+        type: "error"
+      });
+    }
   }
+
+
 
   onMount(() => {
     getMovieInfo();
@@ -509,8 +561,8 @@
     <p class='ps-3 long-text'>{filmDetails?.filmDesc || ''}</p>
   </Container>
   <Container class='d-flex justify-content-center align-items-center mb-4 flex-column'>
-    <h5 class='mb-4'><strong>Your review</strong></h5>
     {#if localStorage.getItem('userLoggedIn') === 'true'}
+      <h5 class='mb-4'><strong>Your review</strong></h5>
       <Container class="d-flex justify-content-center align-items-center">
         <Container style="width: 100%; max-width: 700px;">
           <Form>
@@ -570,7 +622,15 @@
     </Container>
     <Container>
       {#each comments as comment, index (`${filmId}-${comment.userId}`)}
-        <CommentCard username={comment.userName} commentText={comment.commentText} score={comment.userRating} on:likeToggle={handleLikeToggle}/>
+        <CommentCard 
+          username={comment.userName} 
+          commentText={comment.commentText} 
+          score={comment.userRating} 
+          userId={comment.userId} 
+          currentRating={comment.userCommentRating} 
+          totalRating={comment.totalCommentRating}
+          on:rateComment={handleCommentRate}
+        />
       {/each}
     </Container>
   {/if}

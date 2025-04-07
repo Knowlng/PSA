@@ -13,7 +13,9 @@
       ? "var(--information)"
       : (color === 'yellow')
           ? "var(--putty)"
-          : color;
+          : (color === 'red')
+              ? "var(--danger)"
+              : color;
   $: cursorStyle = clickable ? "cursor: pointer;" : "";
   
   $: fillColor = outlined ? "none" : (filled ? computedColor : "none");

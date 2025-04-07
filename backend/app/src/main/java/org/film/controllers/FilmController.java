@@ -13,6 +13,7 @@ import org.film.dto.CommentFilterRequest;
 import org.film.dto.CommentRequest;
 import org.film.dto.FilmFilterRequest;
 import org.film.dto.FilmRequest;
+import org.film.dto.RateCommentRequest;
 import org.film.dto.RateFilmRequest;
 import org.film.model.Comment;
 import org.film.model.CommentId;
@@ -23,11 +24,14 @@ import org.film.model.Genre;
 import org.film.model.Person;
 import org.film.model.User;
 import org.film.model.UserFilm;
+import org.film.model.UserFilmComment;
+import org.film.model.UserFilmCommentId;
 import org.film.model.UserFilmId;
 import org.film.repository.CommentRepository;
 import org.film.repository.FilmRepository;
 import org.film.repository.GenreRepository;
 import org.film.repository.PersonRepository;
+import org.film.repository.UserFilmCommentRepository;
 import org.film.repository.UserFilmRepository;
 import org.film.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -65,19 +69,22 @@ public class FilmController {
     private final UserRepository userRepository;
     private final UserFilmRepository userFilmRepository;
     private final CommentRepository commentRepository;
+    private final UserFilmCommentRepository userFilmCommentRepository;
 
     public FilmController(FilmRepository filmRepository, 
                           GenreRepository genreRepository, 
                           PersonRepository personRepository,
                           UserRepository userRepository,
                           UserFilmRepository userFilmRepository,
-                          CommentRepository commentRepository) {
+                          CommentRepository commentRepository,
+                          UserFilmCommentRepository userFilmCommentRepository) {
         this.commentRepository = commentRepository;
         this.filmRepository = filmRepository;
         this.genreRepository = genreRepository;
         this.personRepository = personRepository;
         this.userRepository = userRepository;
         this.userFilmRepository = userFilmRepository;
+        this.userFilmCommentRepository = userFilmCommentRepository;
     }
 
     @PostMapping("/admin/create-film")
@@ -524,6 +531,10 @@ public class FilmController {
 
         Page<Comment> commentPage = commentRepository.findByIdFilmId(filmId, pageable);
 
+        final Optional<User> currentUserOpt = (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser"))
+                ? userRepository.findByUserName(auth.getName())
+                : Optional.empty();
+
         List<Comment> filteredComments = commentPage.getContent().stream()
                 .filter(comment -> comment.getCommentText() != null && !comment.getCommentText().trim().isEmpty())
                 .collect(Collectors.toList());
@@ -539,18 +550,37 @@ public class FilmController {
             UserFilmId userFilmId = new UserFilmId();
             userFilmId.setUserId(comment.getId().getUserId());
             userFilmId.setFilmId(comment.getId().getFilmId());
-
             Optional<UserFilm> userFilmOpt = userFilmRepository.findById(userFilmId);
             map.put("userRating", userFilmOpt.map(UserFilm::getRating).orElse(null));
 
+            List<UserFilmComment> commentRatings = userFilmCommentRepository
+                    .findByIdCommentUserIdAndIdCommentFilmId(
+                            comment.getId().getUserId().intValue(), 
+                            comment.getId().getFilmId().intValue());
+            int totalCommentRating = commentRatings.stream()
+                    .mapToInt(r -> r.getCommentRating() ? 1 : -1)
+                    .sum();
+            map.put("totalCommentRating", totalCommentRating);
+
+            if (currentUserOpt.isPresent()) {
+                User currentUser = currentUserOpt.get();
+                UserFilmCommentId ufCommentId = new UserFilmCommentId();
+                ufCommentId.setLikedUserId(currentUser.getUserId().intValue());
+                ufCommentId.setCommentUserId(comment.getId().getUserId().intValue());
+                ufCommentId.setCommentFilmId(comment.getId().getFilmId().intValue());
+
+                Optional<UserFilmComment> userCommentRatingOpt = userFilmCommentRepository.findById(ufCommentId);
+                map.put("userCommentRating", userCommentRatingOpt.map(UserFilmComment::getCommentRating).orElse(null));
+            } else {
+                map.put("userCommentRating", null);
+            }
             return map;
         }).collect(Collectors.toList());
 
-
         Page<Map<String, Object>> resultPage = new PageImpl<>(resultList, pageable, commentPage.getTotalElements());
-
         return ResponseEntity.ok(resultPage);
     }
+
 
     @DeleteMapping("/auth/comment")
     public ResponseEntity<?> deleteComment(@RequestParam("filmId") Long filmId, Authentication auth) {
@@ -576,6 +606,57 @@ public class FilmController {
 
         commentRepository.deleteById(commentId);
         return ResponseEntity.ok("Comment deleted successfully");
+    }
+
+    @PostMapping("/auth/rate-comment")
+    public ResponseEntity<?> rateComment(@Valid @RequestBody RateCommentRequest request, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+        
+        Optional<User> userOpt = userRepository.findByUserName(auth.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User likedUser = userOpt.get();
+
+        Long filmId = request.getFilmId();
+        Long commentUserId = request.getCommentUserId();
+        Boolean commentRating = request.getCommentRating();
+
+        if (!filmRepository.existsById(filmId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Film not found");
+        }
+
+        CommentId commentId = new CommentId();
+        commentId.setUserId(commentUserId);
+        commentId.setFilmId(filmId);
+        if (!commentRepository.existsById(commentId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
+        }
+
+        UserFilmCommentId ufCommentId = new UserFilmCommentId();
+        ufCommentId.setLikedUserId(likedUser.getUserId().intValue());
+        ufCommentId.setCommentUserId(commentUserId.intValue());
+        ufCommentId.setCommentFilmId(filmId.intValue());
+
+        if (commentRating == null) {
+            if (userFilmCommentRepository.existsById(ufCommentId)) {
+                userFilmCommentRepository.deleteById(ufCommentId);
+                return ResponseEntity.ok("Comment rating removed successfully");
+            } else {
+                return ResponseEntity.ok("No rating entry found to remove");
+            }
+        } else {
+            UserFilmComment userFilmComment = userFilmCommentRepository.findById(ufCommentId)
+                    .orElseGet(UserFilmComment::new);
+            userFilmComment.setId(ufCommentId);
+            userFilmComment.setFilmId(filmId.intValue());
+            userFilmComment.setCommentRating(commentRating);
+            
+            userFilmCommentRepository.save(userFilmComment);
+            return ResponseEntity.ok("Comment rating saved successfully");
+        }
     }
 
 }
