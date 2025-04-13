@@ -81,7 +81,7 @@
   {#each Array(3) as _, i}
     {#if startPage + i <= pageCount}
       <PaginationItem active={currentPage === startPage + i}>
-        <PaginationLink on:click={() => handlePageChange(startPage + i)}>
+        <PaginationLink on:click={(event) => { event.preventDefault(); handlePageChange(startPage + i); }}>
           {startPage + i}
         </PaginationLink>
       </PaginationItem>

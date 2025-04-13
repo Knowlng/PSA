@@ -1,4 +1,5 @@
 <script>
+    import { onMount } from 'svelte';
     import {
         Badge,
         Form,
@@ -102,6 +103,18 @@
         await getUserInfo();
         showEditField = true;
     }
+
+    onMount(async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('userId');
+        const userName = urlParams.get('username');
+        if (userId) {
+            selectedId = userId;
+            selectedName = userName;
+            await getUserInfo();
+            showEditField = true;
+        }
+    });
 
 </script>
 

@@ -1,5 +1,7 @@
 package org.film.controllers;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -527,15 +529,15 @@ public class FilmController {
         Long filmId = commentFilterRequest.getFilmId();
         int page = Math.max(commentFilterRequest.getPage() - 1, 0);
         int size = commentFilterRequest.getSize();
-        Pageable pageable = PageRequest.of(page, size);
+        
+        List<Comment> allComments = commentRepository.findByIdFilmId(filmId);
 
-        Page<Comment> commentPage = commentRepository.findByIdFilmId(filmId, pageable);
-
-        final Optional<User> currentUserOpt = (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser"))
+        final Optional<User> currentUserOpt = (auth != null && auth.isAuthenticated() 
+            && !auth.getName().equals("anonymousUser"))
                 ? userRepository.findByUserName(auth.getName())
                 : Optional.empty();
 
-        List<Comment> filteredComments = commentPage.getContent().stream()
+        List<Comment> filteredComments = allComments.stream()
                 .filter(comment -> comment.getCommentText() != null && !comment.getCommentText().trim().isEmpty())
                 .collect(Collectors.toList());
 
@@ -546,7 +548,7 @@ public class FilmController {
             map.put("commentText", comment.getCommentText());
             Optional<User> commentUser = userRepository.findById(comment.getId().getUserId());
             map.put("userName", commentUser.map(User::getUserName).orElse("Unknown"));
-
+            
             UserFilmId userFilmId = new UserFilmId();
             userFilmId.setUserId(comment.getId().getUserId());
             userFilmId.setFilmId(comment.getId().getFilmId());
@@ -555,7 +557,7 @@ public class FilmController {
 
             List<UserFilmComment> commentRatings = userFilmCommentRepository
                     .findByIdCommentUserIdAndIdCommentFilmId(
-                            comment.getId().getUserId().intValue(), 
+                            comment.getId().getUserId().intValue(),
                             comment.getId().getFilmId().intValue());
             int totalCommentRating = commentRatings.stream()
                     .mapToInt(r -> r.getCommentRating() ? 1 : -1)
@@ -568,7 +570,7 @@ public class FilmController {
                 ufCommentId.setLikedUserId(currentUser.getUserId().intValue());
                 ufCommentId.setCommentUserId(comment.getId().getUserId().intValue());
                 ufCommentId.setCommentFilmId(comment.getId().getFilmId().intValue());
-
+                
                 Optional<UserFilmComment> userCommentRatingOpt = userFilmCommentRepository.findById(ufCommentId);
                 map.put("userCommentRating", userCommentRatingOpt.map(UserFilmComment::getCommentRating).orElse(null));
             } else {
@@ -577,9 +579,45 @@ public class FilmController {
             return map;
         }).collect(Collectors.toList());
 
-        Page<Map<String, Object>> resultPage = new PageImpl<>(resultList, pageable, commentPage.getTotalElements());
+        final Integer filterTypeId = (commentFilterRequest.getFilterTypeId() == null 
+                ? 1 : commentFilterRequest.getFilterTypeId());
+        final String sortOrder = (commentFilterRequest.getSortOrder() == null || commentFilterRequest.getSortOrder().isEmpty() 
+                ? "DESC" : commentFilterRequest.getSortOrder());
+
+        if (filterTypeId == 2 || filterTypeId == 3) {
+            if (currentUserOpt.isPresent()) {
+                resultList = resultList.stream().filter(map -> {
+                    Object userCommentRating = map.get("userCommentRating");
+                    if (filterTypeId == 2) {
+                        return Boolean.TRUE.equals(userCommentRating);
+                    } else {
+                        return Boolean.FALSE.equals(userCommentRating);
+                    }
+                }).collect(Collectors.toList());
+            } else {
+                resultList = new ArrayList<>();
+            }
+        } else if (filterTypeId == 1) {
+            Comparator<Map<String, Object>> comparator = Comparator.comparingInt(
+                    map -> (Integer) map.get("totalCommentRating"));
+            if ("DESC".equalsIgnoreCase(sortOrder)) {
+                comparator = comparator.reversed();
+            }
+            resultList.sort(comparator);
+        }
+
+        int total = resultList.size();
+        int start = page * size;
+        int end = Math.min(start + size, total);
+        List<Map<String, Object>> pagedResult = new ArrayList<>();
+        if (start < end) {
+            pagedResult = resultList.subList(start, end);
+        }
+        
+        Page<Map<String, Object>> resultPage = new PageImpl<>(pagedResult, PageRequest.of(page, size), total);
         return ResponseEntity.ok(resultPage);
     }
+
 
 
     @DeleteMapping("/auth/comment")
@@ -657,6 +695,25 @@ public class FilmController {
             userFilmCommentRepository.save(userFilmComment);
             return ResponseEntity.ok("Comment rating saved successfully");
         }
+    }
+
+    @DeleteMapping("/admin/comment")
+    public ResponseEntity<?> adminDeleteComment(
+            @RequestParam("userId") Long userId,
+            @RequestParam("filmId") Long filmId) {
+        
+        CommentId commentId = new CommentId();
+        commentId.setUserId(userId);
+        commentId.setFilmId(filmId);
+
+        Optional<Comment> commentOpt = commentRepository.findById(commentId);
+        if (commentOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
+        }
+
+        commentRepository.deleteById(commentId);
+        
+        return ResponseEntity.ok("Comment deleted successfully");
     }
 
 }

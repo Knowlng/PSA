@@ -3,6 +3,7 @@
   import { Container, Input, Label } from '@sveltestrap/sveltestrap';
   import Star from '$lib/Star.svelte';
   import { createEventDispatcher } from 'svelte';
+  import Modal from '$lib/Modal.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -12,8 +13,11 @@
   export let currentRating;
   export let totalRating;
   export let userId;
+  export let isCommentDeletable;
+  export let isUsernameRoutable = false;
 
   let rating;
+  let modalOpen = false;
 
   function handleLike() {
     if (currentRating === true) {
@@ -48,14 +52,26 @@
     }
     dispatch('rateComment', { rating, userId });
   }
+
+  function handleCommentDelete() {
+    dispatch('deleteComment', { userId });
+  }
+
+  function handleUsernameClick() {
+    window.location.href = `/manage/manageUsers?userId=${encodeURIComponent(userId)}&username=${encodeURIComponent(username)}`;
+  }
 </script>
 
 <Container class="d-flex justify-content-center flex-column">
   <Container style="width: 100%; max-width: 700px; border: 1px solid; border-radius: 5px;" class="p-0 mb-4">
     <Container class="p-0 d-flex justify-content-between align-items-center comment-header">
-      <p class="ps-2 m-0"><strong>{username}</strong></p>
+      {#if isUsernameRoutable}
+        <button on:click={handleUsernameClick}>{username}</button>
+      {:else}
+        <p class="ps-2 m-0"><strong>{username}</strong></p>
+      {/if}
       <Container class="p-0 d-flex justify-content-end align-items-center">
-        <p class="m-0 me-1"><strong>{score}/10</strong></p>
+        <p class="m-0 me-1"><strong>{score ? score : '-'}/10</strong></p>
         <Star filled={true} color="blue" size={22}/>
       </Container>
     </Container>
@@ -67,20 +83,35 @@
       disabled
     />
     <Container class="p-0 comment-footer">
-      <Container class="p-0 d-flex justify-content-end align-items-center">
-        {#if localStorage.getItem('userLoggedIn') === 'true'}
-          <p class="ps-2 m-0"><strong>Like:</strong></p>
-          <Star filled={currentRating === true} color="blue" size={32} clickable={true} on:click={handleLike}/>
-          <p class="ps-2 m-0"><strong>Dislike:</strong></p>
-          <Star filled={currentRating === false} color="red" size={32} clickable={true} on:click={handleDislike}/>
+      <Container class="p-0 d-flex">
+        {#if isCommentDeletable}
+          <Container class="d-flex justify-content-start align-items-center">
+            <button on:click={()=> modalOpen = true}>Delete</button>
+          </Container>
         {/if}
-        <p class="ps-2 m-0"><strong>Rating: {totalRating}</strong></p>
-        <Star filled={true} color="yellow" size={32}/>
+        <Container class="p-0 d-flex justify-content-end align-items-center">
+          {#if localStorage.getItem('userLoggedIn') === 'true'}
+            <p class="ps-2 m-0"><strong>Like:</strong></p>
+            <Star filled={currentRating === true} color="blue" size={32} clickable={true} on:click={handleLike}/>
+            <p class="ps-2 m-0"><strong>Dislike:</strong></p>
+            <Star filled={currentRating === false} color="red" size={32} clickable={true} on:click={handleDislike}/>
+          {/if}
+          <p class="ps-2 m-0"><strong>Rating: {totalRating}</strong></p>
+          <Star filled={true} color="yellow" size={32}/>
+        </Container>
       </Container>
     </Container>
   </Container>
 </Container>
-
+{#if modalOpen}
+  <Modal 
+    modalTitle={"Deleting " + username + "'s comment"}
+    modalBody={ "Are you sure you want to delete this comment?"}
+    buttonText="Delete"
+    on:toggle={() => { modalOpen = false; rating = ''; }}
+    on:confirm={handleCommentDelete}
+  />
+{/if}
 <style>
   :global(.comment-header) {
     background-color: var(--amber);
@@ -88,5 +119,15 @@
   }
   :global(.comment-footer) {
     border-top: 1px solid;
+  }
+
+  button {
+    all: unset;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  button:hover {
+    color: var(--information);
   }
 </style>

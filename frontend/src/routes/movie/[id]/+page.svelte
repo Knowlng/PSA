@@ -36,6 +36,20 @@
 
   let comments = [];
 
+  const COMMENT_FILTER_VALUES = [
+    { id: 1, label: "By Stars" },
+    { id: 2, label: "Liked by you" },
+    { id: 3, label: "Disliked by you" }
+  ];
+
+  let filteredOptions;
+
+  let filterTypeId;
+  let sortOrder;
+
+  let isCommentDeletable;
+  let isUsernameRoutable;
+
   const resize = () => {
     inner.style.height = 'auto';
     inner.style.height = 4 + inner.scrollHeight + 'px';
@@ -103,6 +117,46 @@
       });
     }
     loadingFilm = false;
+  }
+
+  async function handleAdminCommentDelete(event) {
+    const { userId } = event.detail;
+
+    try {
+      const response = await fetch(`/api/admin/comment?userId=${userId}&filmId=${filmId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const text = await response.text();
+        if (text.includes("Comment not found")) {
+          addToast({
+            message: "Comment not found",
+            type: "error",
+          });
+        } else {
+          addToast({
+            message: "Something went wrong. Please try again later.",
+            type: "error",
+          });
+        }
+        return;
+      }
+    
+      addToast({
+        message: "Comment deleted successfully",
+        type: "success",
+      });
+    
+      fetchComments();
+    
+    } catch (error) {
+      addToast({
+        message: "Something went wrong. Please try again later.",
+        type: "error",
+      });
+    }
   }
 
   function handleNameClick(clickedPerson) {
@@ -224,7 +278,7 @@
 
   function handlePerPageChange(event) {
     perPage = event.target.value;
-    fetchComments(currentPage, Number(perPage));
+    fetchComments(1, Number(perPage));
   }
 
   async function fetchComments(page, perPage) {
@@ -239,7 +293,9 @@
         body: JSON.stringify({
           filmId: filmId,
           page: page,
-          size: perPage
+          size: perPage,
+          filterTypeId: filterTypeId,
+          sortOrder: sortOrder
         })
       });
 
@@ -401,6 +457,10 @@
     }, 0);
   }
 
+  function filterComments(){
+    fetchComments(1, Number(perPage));
+  }
+
   async function handleCommentRate(event) {
     const { rating, userId } = event.detail;
     let commentUserId = userId;
@@ -454,13 +514,19 @@
     }
   }
 
-
-
   onMount(() => {
+    let userLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+    filteredOptions = userLoggedIn
+      ? COMMENT_FILTER_VALUES
+      : COMMENT_FILTER_VALUES.slice(0, 1);
+    isCommentDeletable = localStorage.getItem('role') === 'admin' ? true : false;
+    isUsernameRoutable = localStorage.getItem('role') === 'admin' ? true : false;
+
+    
     getMovieInfo();
     fetchAverageRating();
     if(localStorage.getItem('userLoggedIn') === 'true') {
-      fetchUserFilmRating();
+      fetchUserFilmRating();  
       fetchUserComment();
     }
     fetchComments(1, 10);
@@ -584,14 +650,24 @@
         </Container>
       </Container>
     {/if}
-    <h5 class='mb-4 mt-4'><strong>All reviews</strong></h5>
-    <Container>
+    <h5 class='mb-4 mt-4'><strong>All reviews</strong></h5> 
+    <Container class="d-flex justify-content-center align-items-center mb-3 gap-3">
+      <Input bind:value={filterTypeId} type="select" style="width:300px;">
+        {#each filteredOptions as option}
+          <option value={option.id}>{option.label}</option>
+        {/each}
+      </Input>
+      <Input  bind:value={sortOrder} type="select" style="width:100px;">
+        <option default value="DESC">DESC</option>
+        <option value="ASC">ASC</option>
+      </Input>
+      <Button color="primary" type="submit" on:click={filterComments}>Filter</Button>
+    </Container>
       {#if totalPages > 1}
         <Container class="d-flex justify-content-center mb-1">
           <CustomPagination on:pageChange={handlePageChange} pageCount={totalPages} currentPage={currentPage}/>
         </Container>
       {/if}
-    </Container>
     {#if loadingComments}
     <Container class="d-flex justify-content-center align-items-center">
       <Spinner color="warning"/>
@@ -629,7 +705,10 @@
           userId={comment.userId} 
           currentRating={comment.userCommentRating} 
           totalRating={comment.totalCommentRating}
+          isCommentDeletable={isCommentDeletable}
+          isUsernameRoutable={isUsernameRoutable}
           on:rateComment={handleCommentRate}
+          on:deleteComment={handleAdminCommentDelete}
         />
       {/each}
     </Container>

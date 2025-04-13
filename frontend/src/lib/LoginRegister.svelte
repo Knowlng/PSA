@@ -99,7 +99,6 @@
             .then(response => {
                 if (!response.ok) {
                     return response.text().then(text => {
-                        console.log(response.text());
                         if (text.includes("Username is already taken")) {
                             addToast({
                                 message: "Username is already taken",
