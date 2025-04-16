@@ -8,7 +8,8 @@
         MAX_PERSON_SEARCH_LENGTH,
         MAX_GROSS,
         MAX_RATING,
-        MIN_RATING
+        MIN_RATING,
+        DEFAULT_PAGE_SIZE,
     } from '$lib/consts.js';
     import { onMount } from 'svelte';
     import { addToast } from "$lib/ToastNotification/toastStore.js";
@@ -17,6 +18,7 @@
     import { goto } from '$app/navigation'
     import { Spinner } from '@sveltestrap/sveltestrap';
     import Star from '$lib/Star.svelte';
+    import { _, locale } from "svelte-i18n";
 
     let loading = true;
 
@@ -40,7 +42,7 @@
 
     let totalPages;
     let totalEntries;
-    let perPage;
+    let perPage = DEFAULT_PAGE_SIZE.toString();
     let currentPage;
 
     function handleMovieEnter(event) {
@@ -162,7 +164,7 @@
         };
 
         try {
-            const response = await fetch('/api/public/films/filter', {
+            const response = await fetch(`/api/public/films/filter?locale=${$locale}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -214,7 +216,7 @@
             selectedAgeRatings = storedFilters.selectedAgeRatings || [];
             genreArray = storedFilters.genreArray || [];
             actorArray = storedFilters.actorArray || [];
-            perPage = storedFilters.perPage ? storedFilters.perPage.toString() : '10';
+            perPage = storedFilters.perPage ? storedFilters.perPage.toString() : DEFAULT_PAGE_SIZE.toString();
             totalPages = storedFilters.totalPages;
             totalEntries = storedFilters.totalEntries;
             currentPage = storedFilters.currentPage || 1;
@@ -226,7 +228,7 @@
 <Container class="mt-5 p-0">
     <h1 class="text-center mb-5">Search Movies</h1>
     <Form class='mb-5'>
-        <Container class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
+        <Container class="w-75 mx-auto" style="min-width: 100px; max-width: 700px;">
             <FormGroup class="mb-4">
                 <Container class="mb-3">
                     <SearchField
@@ -256,36 +258,40 @@
                         {#each selectedAgeRatings as rating (rating)}
                           <span>
                             {rating}
-                            <Button class="mr-3" color="danger" on:click={() => removeAgeRating(rating)}>X</Button>
+                            <Button class="mr-3 text-center" color="danger" on:click={() => removeAgeRating(rating)}>X</Button>
                           </span>
                         {/each}
                     </Container>
-                    <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center">
-                        <p class="mb-0">From</p>
+                    <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center date-entry-container">
+                        <p class="mb-0 entry-label">From</p>
                         <Input type="date" bind:value={fromDate} />
-                        <p class="mb-0">To</p>
+                        <p class="mb-0 entry-label">To</p>
                         <Input type="date" bind:value={toDate} />
                     </Container>
-                    <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center">
-                        <p class="mb-0">From</p>
-                        <Input 
-                            placeholder="Gross"
-                            type="number" step="1" min="0"
-                            max={MAX_GROSS}
-                            bind:value={minGross}
-                        />
-                        <InputGroupText>$</InputGroupText>
-                        <p class="mb-0">To</p>
-                        <Input 
-                            placeholder="Gross"
-                            type="number" step="1" min="0"
-                            max={MAX_GROSS}
-                            bind:value={maxGross}
-                        />
-                        <InputGroupText>$</InputGroupText>
+                    <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center gross-entry-container">
+                        <p class="mb-0 entry-label">From</p>
+                        <Container class='d-flex'>
+                            <Input
+                                placeholder="Gross"
+                                type="number" step="1" min="0"
+                                max={MAX_GROSS}
+                                bind:value={minGross}
+                            />
+                            <InputGroupText class='text-center'>$</InputGroupText>
+                        </Container>
+                        <p class="mb-0 entry-label">To</p>
+                        <Container class='d-flex'>
+                            <Input 
+                                placeholder="Gross"
+                                type="number" step="1" min="0"
+                                max={MAX_GROSS}
+                                bind:value={maxGross}
+                            />
+                            <InputGroupText>$</InputGroupText>
+                        </Container>
                     </Container>
-                    <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center">
-                        <p class="mb-0">From</p>
+                    <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center rating-entry-container">
+                        <p class="mb-0 entry-label">From</p>
                         <Input 
                             placeholder="User Rating"
                             type="number" step="0.1"
@@ -293,7 +299,7 @@
                             min={MIN_RATING}
                             bind:value={minRating}
                         />
-                        <p class="mb-0">To</p>
+                        <p class="mb-0 entry-label">To</p>
                         <Input 
                             placeholder="User Rating"
                             type="number" step="0.1"
@@ -353,20 +359,23 @@
         <Spinner color="warning"/>
     </Container>
     {:else if movies && movies.length > 0}
-        <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 450px; max-width: 700px;">
-            <Container>Total pages: {totalPages}</Container>
-            <Container class="text-center">Total Entries: {totalEntries}</Container>
-            <Container style="min-width: 100px; max-width: 100px;" class="text-end p-0 d-flex align-items-center justify-content-end">
-                <Label class="m-0" for="perPage">Per page:</Label>
-            </Container>
-            <Container style="min-width: 100px; max-width: 100px;">
-                <select key={perPage} type="select" bind:value={perPage} on:change={handlePerPageChange}>
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="75">75</option>
-                    <option value="100">100</option>
-                </select>
+        <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 100px; max-width: 700px;">
+            <Container class='text-center'>Pages: {totalPages}</Container>
+            <Container class="text-center">Entries: {totalEntries}</Container>
+            <Container class="d-flex per-page-panel text-center">
+                <Container style="min-width: 100px; max-width: 100px;" class="per-page-label text-end p-0 d-flex align-items-center justify-content-end">
+                    <Label class="m-0" for="perPage">Per page:</Label>
+                </Container>
+                <Container style="min-width: 75px; max-width: 75px;">
+                    <select key={perPage} type="select" bind:value={perPage} on:change={handlePerPageChange}>
+                        <option value="1">1</option>
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="75">75</option>
+                        <option value="100">100</option>
+                    </select>
+                </Container>
             </Container>
         </Container>
     {:else}
@@ -375,11 +384,11 @@
             <h4>Try altering your search parameters</h4>
         </Container>
     {/if}
-    <Container class="p-0 movie-entry mb-4" style="min-width: 450px; max-width: 700px;">
+    <Container class="p-0 movie-entry mb-4" style="min-width: 100px; max-width: 700px;">
         {#each movies as movie, index (movie.id)}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div style="border: 1px solid black;" class="{index % 2 === 0 ? 'first-panel' : 'second-panel'} m-0 pb-3 pt-3 d-flex " on:click={() => routeToMovie(movie.id)}>
+          <div style="border: 1px solid black;" class="{index % 2 === 0 ? 'first-panel' : 'second-panel'} m-0 pb-3 pt-3 d-flex movie-panel" on:click={() => routeToMovie(movie.id)}>
             <Container>
                 <h4><strong>Title:</strong> {movie.filmName || '-'}</h4>
                 <p><strong>Release Date:</strong> {movie.filmReleaseDate || '-'}</p>
@@ -406,7 +415,7 @@
               {/if}              
             </Container>
             <Container class="p-0 d-flex flex-column">
-                <Container class="p-0 d-flex flex-column justify-content-center align-items-center">
+                <Container class="p-0 d-flex flex-column justify-content-center align-items-center raiting-panel">
                     <Container class="d-flex p-0 justify-content-center align-items-center">
                         <p class="mb-0 me-2"><strong>Overall rating:</strong></p>
                         <strong><span class="me-1" style="font-size: 1.5rem;">{movie.averageRating ? movie.averageRating : '-' }</span></strong>
@@ -477,4 +486,39 @@
         overflow-wrap: break-word;
         word-wrap: break-word;
     }
+
+    @media (max-width: 425px) {
+        :global(.movie-panel) {
+            flex-direction: column;
+        }
+        :global(.raiting-panel) {
+            order: 2;
+        }
+        :global(.per-page-panel) {
+            flex-direction: column;
+        }
+        :global(.per-page-label) {
+           display: block !important;
+           text-align: center !important;
+        }
+    }
+
+    @media (max-width: 475px) {
+        :global(.rating-entry-container) {
+            flex-direction: column;
+        }
+        :global(.gross-entry-container) {
+            flex-direction: column;
+        }
+        :global(.date-entry-container) {
+            flex-direction: column;
+        }
+        :global(.entry-label) {
+            align-self: baseline;
+        }
+        :global(.gross-container-dollar) {
+            display: flex;
+        }
+    }
+
 </style>

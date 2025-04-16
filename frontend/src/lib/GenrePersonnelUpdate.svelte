@@ -23,20 +23,34 @@
     let apiName;
     let fieldName;
     let showEditField;
-    let changeName;
+    let changeNameEN = "";
+    let changeNameLT = "";
     let selectedId;
     let modalOpen = false;
 
     async function changeHandler() {
-        if (!changeName || changeName.trim() === "") {
-            showEditField = false;
+        let payload;
+        changeNameEN = changeNameEN.trim();
+        changeNameLT = changeNameLT.trim();
+        if (!changeNameEN || !changeNameLT) {
+            addToast({
+                message: "Please fill in all fields",
+                type: "error",
+            });
             return;
         }
-        changeName = changeName.trim();
 
-        const payload = {
-            [fieldName]: changeName
-        };
+        if(type === "Genre") {
+            payload = {
+                enGenreName: changeNameEN,
+                ltGenreName: changeNameLT
+            };
+        } else if(type === "Personnel") {
+            payload = {
+                enPersonName: changeNameEN,
+                ltPersonName: changeNameLT
+            };        
+        }
 
         fetch(`/api/admin/update-${apiName}/${selectedId}`, {
             method: 'PUT',
@@ -86,16 +100,12 @@
             });
         })
         .finally(() => {
-            changeName = "";
+            changeNameEN = "";
+            changeNameLT = "";
             selectedName = "";
             showEditField = false;
         });
     }
-
-    function deleteHandler() {
-        modalOpen = true;
-    }
-
 
     function confirmDelete() {
         fetch(`/api/admin/delete-${apiName}/${selectedId}`, {
@@ -139,18 +149,64 @@
         })
         .finally(() => {
             selectedName = "";   
-            selectedName = "";
             showEditField = false;
         });
     }
     
-    function selectHandler(event) {
+    async function selectHandler(event) {
         const { id, name } = event.detail;
         selectedName = name;
         selectedId = id;
+        await fetchTranslations();
         showEditField = true;
     }
 
+    async function fetchTranslations() {
+
+        fetch(`/api/admin/${apiName}/${selectedId}/translations`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    if (text.includes(`Not found`)) {
+                        if(type === "Genre") {
+                            addToast({
+                                message: "Genre not found",
+                                type: "error",
+                            }); 
+                        } else if(type === "Personnel") {
+                            addToast({
+                                message: "Personnel not found",
+                                type: "error",
+                            }); 
+                        }                   
+                    } else {
+                        addToast({
+                            message: "Something went wrong. Please try again later.",
+                            type: "error",
+                        });
+                    }
+                    return null;
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            changeNameEN = data.en;
+            changeNameLT = data.lt;
+        })
+        .catch(error => {
+            addToast({
+                message: "Something went wrong. Please try again later.",
+                type: "error",
+            });
+        })
+    }
 
     onMount(() => {
         if(type === "Genre") {
@@ -167,28 +223,37 @@
 <Container>
     <h1>Update {type} Info</h1>
     <p>Update {type} info by selecting an existing entry from the list</p>
-    <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
+    <Form class="w-75 mx-auto" style="min-width: 100px; max-width: 700px;">
         <FormGroup class="mb-4">
         <SearchField 
             placeholder="Enter {type} name" 
             maxlength={maxlength}
             bind:value={selectedName}
             on:select={selectHandler}
-            on:fieldFocused={() => { showEditField = false; }}
+            on:fieldFocused={() => { showEditField = false; selectedName = ""; }}
             searchEndpoint={`/api/public/search-${apiName}`}
         />
         </FormGroup>
         {#if showEditField}
+            <Label>Enter English {type} name</Label>
             <Input 
                 class="mb-4"
                 maxlength={maxlength}
                 type="text"
-                bind:value={changeName}
-                placeholder="Enter a new name"
+                bind:value={changeNameEN}
+                placeholder="Enter new {type} name in English"
+            />
+            <Label>Enter Lithuanian {type} name</Label>
+            <Input 
+                class="mb-4"
+                maxlength={maxlength}
+                type="text"
+                bind:value={changeNameLT}
+                placeholder="Enter new {type} name in Lithuanian"
             />
             <Container class="d-flex justify-content-between">
                 <Button color="success" on:click={changeHandler}>Change</Button>
-                <Button color="danger" on:click={deleteHandler}>Delete</Button>
+                <Button color="danger" on:click={() => modalOpen = true}>Delete</Button>
             </Container>
         {/if}
     </Form>

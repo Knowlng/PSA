@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { DEFAULT_PAGE_SIZE } from '$lib/consts.js';
 
 export const filterStore = writable({
   movieName: '',
@@ -14,7 +15,7 @@ export const filterStore = writable({
   selectedAgeRatings: [],
   genreArray: [],
   actorArray: [],
-  perPage: "10",
+  perPage: DEFAULT_PAGE_SIZE.toString(),
   totalPages: 0,
   totalEntries: 0,
   currentPage: 1

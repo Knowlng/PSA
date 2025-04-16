@@ -14,6 +14,7 @@
     DropdownItem
   } from '@sveltestrap/sveltestrap';
   import { addToast } from "$lib/ToastNotification/toastStore.js";
+  import LanguageDropdown from "$lib/LanguageDropdown.svelte";
 
   let username;
 
@@ -38,8 +39,10 @@
     })
     .then(result => {
       if (result !== null) {
+        let currentLocale = localStorage.getItem('cachedLocale');
         localStorage.clear();
         localStorage.setItem('userLoggedIn', false);
+        localStorage.setItem('cachedLocale', currentLocale);
         window.location.href = '/';
       }
     })
@@ -103,6 +106,7 @@
           </DropdownMenu>
         </Dropdown>
       {/if}
+      <LanguageDropdown/>
       {#if localStorage.getItem('userLoggedIn') === 'true'}
         <NavItem>
           <NavLink on:click={handleLogout}>Logout</NavLink>

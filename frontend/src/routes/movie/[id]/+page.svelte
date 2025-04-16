@@ -8,13 +8,14 @@
   import Modal from '$lib/Modal.svelte';
   import StarRating from '$lib/StarRating.svelte';
   import { Container, Spinner, Form, Input, Button, Label } from '@sveltestrap/sveltestrap';
-  import { COMMENT_MAX_LENGTH } from '$lib/consts.js';
+  import { COMMENT_MAX_LENGTH, DEFAULT_PAGE_SIZE, COMMENT_FILTER_VALUES } from '$lib/consts.js';
   import CustomPagination from '$lib/CustomPagination.svelte';
   import CommentCard from '$lib/CommentCard.svelte';
+  import { _, locale } from "svelte-i18n";
 
   let totalPages;
   let totalEntries;
-  let perPage;
+  let perPage = DEFAULT_PAGE_SIZE.toString();
   let currentPage;
 
   let loadingFilm = true;
@@ -35,12 +36,6 @@
   let showNotSavedText = false;
 
   let comments = [];
-
-  const COMMENT_FILTER_VALUES = [
-    { id: 1, label: "By Stars" },
-    { id: 2, label: "Liked by you" },
-    { id: 3, label: "Disliked by you" }
-  ];
 
   let filteredOptions;
 
@@ -93,7 +88,7 @@
 
   async function getMovieInfo() {
     try {
-      const response = await fetch(`/api/public/film/${filmId}`);
+      const response = await fetch(`/api/public/film/${filmId}?locale=${$locale}`);
       if (!response.ok) {
         const text = response.text();
         if(text.includes("Film not found")) {
@@ -110,6 +105,13 @@
       }
 
       filmDetails = await response.json();
+      if($locale = 'lt') {
+        filmDetails.filmName = filmDetails.filmNameLt;
+        filmDetails.filmDesc = filmDetails.filmDescLt;
+      } else if($locale = 'en') {
+        filmDetails.filmName = filmDetails.filmNameEn;
+        filmDetails.filmDesc = filmDetails.filmDescEn;
+      }
     } catch (error) {
       addToast({
         message: "Something went wrong. Please try again later.",
@@ -172,7 +174,7 @@
       selectedAgeRatings: [],
       genreArray: [],
       actorArray: [{ actorId: clickedPerson.id, name: clickedPerson.name, role: clickedPerson.role }],
-      perPage: "10",
+      perPage: DEFAULT_PAGE_SIZE.toString(),
       totalPages: 0,
       totalEntries: 0,
       currentPage: 1
@@ -522,14 +524,13 @@
     isCommentDeletable = localStorage.getItem('role') === 'admin' ? true : false;
     isUsernameRoutable = localStorage.getItem('role') === 'admin' ? true : false;
 
-    
     getMovieInfo();
     fetchAverageRating();
     if(localStorage.getItem('userLoggedIn') === 'true') {
       fetchUserFilmRating();  
       fetchUserComment();
     }
-    fetchComments(1, 10);
+    fetchComments(1, DEFAULT_PAGE_SIZE);
   });
 </script>
 {#if loadingFilm}

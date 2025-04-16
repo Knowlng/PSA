@@ -5,6 +5,8 @@
   import '/src/styles/variables.css';
   import Toasts from "$lib/ToastNotification/Toasts.svelte";
   import { onMount } from 'svelte';
+  import { isLoading } from "svelte-i18n";
+  import { Spinner } from '@sveltestrap/sveltestrap';
 
   onMount(() => {
     let loggedIn = localStorage.getItem('userLoggedIn');
@@ -14,21 +16,25 @@
   });
 
 </script>
-
-<div class="layout">
-  <Toasts/>
-  <header>
-    <Nav />
-  </header>
-  <main>
-    <div class="main-content">
-      <Container class="p-0">
-        <slot />
-      </Container>
-    </div>
-  </main>
-  <Footer />
-</div>
+{#if $isLoading}
+  <!-- <p>Loading language files...</p>
+  <Spinner color="warning"/> -->
+{:else}
+  <div class="layout">
+    <Toasts/>
+    <header>
+      <Nav />
+    </header>
+    <main>
+      <div class="main-content">
+        <Container class="p-0">
+          <slot />
+        </Container>
+      </div>
+    </main>
+    <Footer />
+  </div>
+{/if}
   
 <style>
   main {

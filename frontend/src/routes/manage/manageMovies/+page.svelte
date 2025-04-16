@@ -21,14 +21,17 @@
   } from '$lib/consts.js';
   import { addToast } from "$lib/ToastNotification/toastStore.js";
   import Modal from '$lib/Modal.svelte';
+  import { _, locale } from 'svelte-i18n';
 
   let modalOpen = false;
 
-  let movieName = "";
+  let movieNameEn = "";
+  let movieNameLt = "";
   let ageRating = "";
   let movieDate = "";
   let gross = "";
-  let description = "";
+  let descriptionEn = "";
+  let descriptionLt = "";
   let actorName = '';
   let genreName = '';
   let movieId;
@@ -36,32 +39,42 @@
   let genreArray = [];
   let actorArray = [];
 
-  let inner = '';
+  let inner='';
 
   let response;
 
-  let movieNameInvalid = false;
-  let descriptionInvalid = false;
+  let movieNameInvalidEn = false;
+  let movieNameInvalidLt = false;
+  let descriptionInvalidEn = false;
+  let descriptionInvalidLt = false;
   let grossInvalid = false;
+
   const resize = () => {
     inner.style.height = 'auto';
     inner.style.height = 4 + inner.scrollHeight + 'px';
   };
 
   async function submitHandler() {
-    movieName = movieName.trim();
-    description = description.trim();
-    movieNameInvalid = !movieName;
-    descriptionInvalid = !description;
+    movieNameEn = movieNameEn.trim();
+    descriptionEn = descriptionEn.trim();
+    movieNameLt = movieNameLt.trim();
+    descriptionLt = descriptionLt.trim();
+
+    movieNameInvalidEn = !movieNameEn;
+    movieNameInvalidLt = !movieNameLt;
+    descriptionInvalidEn = !descriptionEn;
+    descriptionInvalidLt = !descriptionLt;
     validateGross();
 
-    if (!movieName || !description || grossInvalid) {
+    if (!movieNameEn || !descriptionEn || grossInvalid || !movieNameLt || !descriptionLt) {
       return;
     }
 
     const payload = {
-      filmName: movieName,
-      filmDesc: description,
+      filmNameEn: movieNameEn,
+      filmNameLt: movieNameLt,
+      filmDescEn: descriptionEn,
+      filmDescLt: descriptionLt,
       filmReleaseDate: movieDate,
       filmGross: gross,
       filmRating: ageRating,
@@ -94,6 +107,11 @@
         } else if (text.includes("Film not found")) {
           addToast({
             message: "Entry not found",
+            type: "error",
+          });
+        } else if (text.includes("English name already exists")) {
+          addToast({
+            message: "English name already exists",
             type: "error",
           });
         } else {
@@ -130,17 +148,21 @@
   }
 
   function resetValues() {
-    movieName = "";
+    movieNameEn = "";
+    movieNameLt = "";
     ageRating = "";
     movieDate = "";
     gross = "";
-    description = "";
+    descriptionEn = "";
+    descriptionLt = "";
     actorArray = [];
     genreArray = [];
     actorName = "";
     genreName = "";
-    movieNameInvalid = false;
-    descriptionInvalid = false;
+    movieNameInvalidLt = false;
+    movieNameInvalidEn = false;
+    descriptionInvalidEn = false;
+    descriptionInvalidLt = false;
     grossInvalid = false;
     movieId = undefined;
   }
@@ -166,7 +188,7 @@
     const { id } = event.detail;
 
     try {
-      const response = await fetch(`/api/public/film/${id}`);
+      const response = await fetch(`/api/public/film/${id}?locale=${$locale}`);
       if (!response.ok) {
         const text = response.text();
         if(text.includes("Film not found")) {
@@ -184,11 +206,13 @@
 
       const filmDetails = await response.json();
       movieId = filmDetails.id;
-      movieName = filmDetails.filmName || "";
+      movieNameEn = filmDetails.filmNameEn || "";
+      movieNameLt = filmDetails.filmNameLt || "";
       ageRating = filmDetails.filmRating || "";
       movieDate = filmDetails.filmReleaseDate || "";
       gross = filmDetails.filmGross != null ? filmDetails.filmGross : "";
-      description = filmDetails.filmDesc || "";
+      descriptionEn = filmDetails.filmDescEn || "";
+      descriptionLt = filmDetails.filmDescLt || "";
       actorArray = (filmDetails.actors || []).map(actor => ({
         id: actor.id,
         name: actor.name,
@@ -273,21 +297,36 @@
   <h1>Edit Movie Info</h1>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div role="group" on:keydown={preventEnterSubmit}>
-    <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
+    <Form class="w-75 mx-auto mb-3" style="min-width: 100px; max-width: 700px;">
       <FormGroup class="mb-4">
           <SearchField
-            placeholder="Enter movie name" 
+            placeholder="Enter English movie name" 
             feedback="Can't be empty"
-            maxlength={MAX_MOVIE_NAME_LENGTH} 
-            bind:value={movieName} 
-            invalid={movieNameInvalid} 
+            maxlength={MAX_MOVIE_NAME_LENGTH}
+            bind:value={movieNameEn}
+            invalid={movieNameInvalidEn}
             on:enter={preventEnterSubmit}
             on:select={handleMovieEnter}
-            on:fieldFocused={() => movieNameInvalid = false}
+            on:fieldFocused={() => movieNameInvalidEn = false}
             searchEndpoint={`/api/public/search-film`}
+            language={'en'}
           />
         </FormGroup>
-        <InputGroup class="mb-4">
+        <FormGroup class="mb-4">
+          <SearchField
+            placeholder="Enter Lithuanian movie name" 
+            feedback="Can't be empty"
+            maxlength={MAX_MOVIE_NAME_LENGTH} 
+            bind:value={movieNameLt}
+            invalid={movieNameInvalidLt} 
+            on:enter={preventEnterSubmit}
+            on:select={handleMovieEnter}
+            on:fieldFocused={() => movieNameInvalidLt = false}
+            searchEndpoint={`/api/public/search-film`}
+            language={'lt'}
+          />
+        </FormGroup>
+        <InputGroup class="mb-4 age-date-gross">
           <FormGroup floating label="Age rating" class="override-mb">
             <Input type="select" bind:value={ageRating}>
               <option value="">Select</option>
@@ -299,9 +338,9 @@
             </Input>
           </FormGroup>
           <Input type="date" bind:value={movieDate} />
-          <InputGroupText>$</InputGroupText>
+          <InputGroupText class='dollar-sign'>$</InputGroupText>
           <Input 
-            placeholder="Gross" 
+            placeholder="Gross $" 
             type="number" step="1" min="0"
             max={MAX_GROSS}
             feedback="Invalid gross amount"
@@ -342,14 +381,25 @@
           {/each}
         </ListGroup>
         <FormGroup>
-          <Label>Description</Label>
+          <Label>English Description</Label>
           <Input 
-            rows={1} type="textarea" bind:inner 
-            on:input={resize} bind:value={description}
+            rows={1} type="textarea" bind:inner
+            on:input={resize} bind:value={descriptionEn}
             maxlength={MAX_DESC_LENGTH} style="resize: none;" 
             required feedback="Can't be empty"
-            invalid={descriptionInvalid}
-            on:focus={() => descriptionInvalid = false}
+            invalid={descriptionInvalidEn}
+            on:focus={() => descriptionInvalidEn = false}
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label>Lithuanian Description</Label>
+          <Input 
+            rows={1} type="textarea" bind:inner 
+            on:input={resize} bind:value={descriptionLt}
+            maxlength={MAX_DESC_LENGTH} style="resize: none;" 
+            required feedback="Can't be empty"
+            invalid={descriptionInvalidLt}
+            on:focus={() => descriptionInvalidLt = false}
           />
         </FormGroup>
         <Container class="text-center justify-content-between {movieId ? 'd-flex' : ''}">
@@ -363,8 +413,8 @@
 </Container>
 {#if modalOpen}
     <Modal 
-      modalTitle={"Are you sure you want to delete " + movieName + "?"}
-      modalBody={"This will remove " + movieName + " from the public listing"}
+      modalTitle={"Are you sure you want to delete " + movieNameEn + "?"}
+      modalBody={"This will remove " + movieNameEn + " from the public listing"}
       buttonText="Delete"
       on:toggle={() => { modalOpen = false; }}
       on:confirm={deleteMovie}
@@ -389,6 +439,21 @@
 
   :global(.list-group-item:last-child) {
     margin-bottom: 2rem;
+  }
+
+  @media (max-width: 500px) {
+    :global(.age-date-gross) {
+      display:flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    :global(.input-group>.form-floating, .input-group>.form-control) {
+      width:100%;
+    }
+    :global(.dollar-sign) {
+      display:none;
+    }
   }
 
 </style>

@@ -122,7 +122,7 @@
 <Container>
     <h1>Manage Users</h1>
     <p class="text-center">Update user access by selecting an existing entry from the list</p>
-    <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
+    <Form class="w-75 mx-auto" style="min-width: 100px; max-width: 700px;">
         <SearchField 
             placeholder="Enter username" 
             maxlength={USER_NAME_LENGTH}
@@ -135,7 +135,7 @@
         <Container class="mt-3 d-flex justify-content-center align-items-center">
             <h4>User information:</h4>
         </Container>
-           <Container class="d-flex justify-content-between mt-3 align-items-center">
+           <Container class="d-flex justify-content-between mt-3 align-items-center user-entry">
                 <p>Username: <strong>{userDetails.userName}</strong></p>
                 <p>Role: <strong>{userDetails.userRole}</strong></p>
                 <p>Account: <strong class={userDetails.enabled ? 'enabled' : 'disabled'}>{userDetails.enabled ? 'enabled' : 'disabled'}</strong></p>
@@ -165,5 +165,11 @@
     }
     .disabled {
         color: var(--danger);
+    }
+
+    @media (max-width: 500px) {
+        :global(.user-entry) {
+        flex-direction: column;
+        }
     }
 </style>

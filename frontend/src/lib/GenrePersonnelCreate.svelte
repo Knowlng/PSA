@@ -17,18 +17,32 @@
     export let maxlength;
 
     let apiName;
-    let fieldName;
-    let newName = "";
+    let newNameEN = "";
+    let newNameLT = "";
 
     async function submitHandler() {
-        newName = newName.trim();
-        if (!newName) {
+        let payload;
+        newNameEN = newNameEN.trim();
+        newNameLT = newNameLT.trim();
+        if (!newNameEN || !newNameLT) {
+            addToast({
+                message: "Please fill in all fields",
+                type: "error",
+            });
             return;
         }
 
-        const payload = {
-            [fieldName]: newName
-        };
+        if(type === "Genre") {
+            payload = {
+                enGenreName: newNameEN,
+                ltGenreName: newNameLT
+            };
+        } else if(type === "Personnel") {
+            payload = {
+                enPersonName: newNameEN,
+                ltPersonName: newNameLT
+            };        
+        }
 
         fetch(`/api/admin/create-${apiName}`, {
             method: 'POST',
@@ -45,7 +59,12 @@
                         addToast({
                             message: "Entry already exists",
                             type: "error",
-                        });                        
+                        });
+                    } else if (text.includes("English entry already exists")) {
+                        addToast({
+                            message: "English entry already exists",
+                            type: "error",
+                        });
                     } else {
                        addToast({
                             message: "Something went wrong. Please try again later.",
@@ -72,17 +91,15 @@
             });
         })
         .finally(() => {
-            newName = "";
+            newNameEN = "";
+            newNameLT = "";
         });
     }
 
-
     onMount(() => {
         if(type === "Genre") {
-            fieldName = "genreName";
             apiName = "genre";
         } else if(type === "Personnel") {
-            fieldName = "personFullName";
             apiName = "person";
         }
     });
@@ -92,12 +109,23 @@
 <Container>
     <h1>Create {type}</h1>
     <p class="text-center">Create a {type} by writting the name below</p>
-    <Form class="w-75 mx-auto" style="min-width: 450px; max-width: 700px;">
+    <Form class="w-75 mx-auto" style="min-width: 100px; max-width: 700px;">
+        <Label>English {type} name:</Label>
         <Input 
             class="mb-4"
             maxlength={maxlength}
             type="text"
-            bind:value={newName}
+            bind:value={newNameEN}
+            placeholder={`Enter ${type} name in English`}
+        />
+        <Label>Lithuanian {type} name:</Label>
+        <Input 
+            class="mb-4"
+            maxlength={maxlength}
+            type="text"
+            bind:value={newNameLT}
+            placeholder={`Enter ${type} name in Lithuanian`}
+
         />
         <Container class="d-flex justify-content-center">
             <Button color="primary" on:click={submitHandler}>Submit</Button>

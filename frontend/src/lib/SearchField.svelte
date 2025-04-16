@@ -2,6 +2,7 @@
   import { Input } from '@sveltestrap/sveltestrap';
   import { createEventDispatcher } from 'svelte';
   import { addToast } from "$lib/ToastNotification/toastStore.js";
+  import { _, locale } from "svelte-i18n";
 
   export let placeholder = '';
   export let value = '';
@@ -10,6 +11,7 @@
   export let invalid = false;
   export let searchEndpoint = '';
   export let clearOnSelect = false;
+  export let language;
 
   let debounceTimer;
   const dispatch = createEventDispatcher();
@@ -22,8 +24,16 @@
         suggestions = [];
         return;
       }
+
+      let endpoint;
+
+      if(language) {
+        endpoint = `${searchEndpoint}?query=${encodeURIComponent(value)}&locale=${encodeURIComponent(language)}`;
+      } else {
+        endpoint = `${searchEndpoint}?query=${encodeURIComponent(value)}&locale=${encodeURIComponent($locale)}`;
+      }
       
-      fetch(`${searchEndpoint}?query=${encodeURIComponent(value)}`)
+      fetch(endpoint)
       .then(response => {
         return response.json();
       })

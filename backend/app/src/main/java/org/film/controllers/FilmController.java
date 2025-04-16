@@ -91,15 +91,25 @@ public class FilmController {
 
     @PostMapping("/admin/create-film")
     public ResponseEntity<?> createFilm(@Valid @RequestBody FilmRequest filmRequest) {
+        String nameEn = filmRequest.getFilmNameEn().trim();
 
-        if (filmRepository.findByFilmName(filmRequest.getFilmName().trim()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Name already exists");
+        if (filmRepository.findByEnglishName(nameEn).isPresent()) {
+            return ResponseEntity
+                   .status(HttpStatus.BAD_REQUEST)
+                   .body("English name already exists");
         }
 
         Film film = new Film();
-        film.setFilmName(filmRequest.getFilmName().trim());
-        film.setFilmDesc(filmRequest.getFilmDesc().trim());
+        film.getFilmNameTranslations()
+            .put("en", nameEn);
+        film.getFilmNameTranslations()
+            .put("lt", filmRequest.getFilmNameLt().trim());
+
+        film.getFilmDescTranslations()
+            .put("en", filmRequest.getFilmDescEn().trim());
+        film.getFilmDescTranslations()
+            .put("lt", filmRequest.getFilmDescLt().trim());
+
         film.setFilmReleaseDate(filmRequest.getFilmReleaseDate());
         film.setFilmRating(filmRequest.getFilmRating());
         film.setFilmGross(filmRequest.getFilmGross());
@@ -134,19 +144,28 @@ public class FilmController {
     }
 
     @PutMapping("/admin/update-film/{id}")
-    public ResponseEntity<?> updateFilm(@PathVariable Long id, @Valid @RequestBody FilmRequest filmRequest) {
+    public ResponseEntity<?> updateFilm(
+        @PathVariable Long id,
+        @Valid @RequestBody FilmRequest filmRequest) {
 
         Film film = filmRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Film not found"));
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Film not found"));
 
-        Optional<Film> duplicateFilm = filmRepository.findByFilmName(filmRequest.getFilmName().trim());
-        if (duplicateFilm.isPresent() && !duplicateFilm.get().getFilmId().equals(id)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Name already exists");
+        String nameEn = filmRequest.getFilmNameEn().trim();
+        Optional<Film> duplicate = filmRepository.findByEnglishName(nameEn);
+        if (duplicate.isPresent() && !duplicate.get().getFilmId().equals(id)) {
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body("English name already exists");
         }
 
-        film.setFilmName(filmRequest.getFilmName().trim());
-        film.setFilmDesc(filmRequest.getFilmDesc().trim());
+        film.getFilmNameTranslations().put("en", nameEn);
+        film.getFilmNameTranslations().put("lt", filmRequest.getFilmNameLt().trim());
+
+        film.getFilmDescTranslations().put("en", filmRequest.getFilmDescEn().trim());
+        film.getFilmDescTranslations().put("lt", filmRequest.getFilmDescLt().trim());
+
         film.setFilmReleaseDate(filmRequest.getFilmReleaseDate());
         film.setFilmRating(filmRequest.getFilmRating());
         film.setFilmGross(filmRequest.getFilmGross());
@@ -186,22 +205,36 @@ public class FilmController {
         return ResponseEntity.ok(updatedFilm);
     }
 
+    @GetMapping("public/search-film")
+    public ResponseEntity<List<Map<String, Object>>> searchFilm(
+            @RequestParam("query") String query,
+            @RequestParam(value = "locale", defaultValue = "en") String locale) {
 
+        List<Film> films;
+        if ("lt".equalsIgnoreCase(locale)) {
+            films = filmRepository
+                .findByFilmNameTranslations_LtContainingIgnoreCase(query);
+        } else {
+            films = filmRepository
+                .findByFilmNameTranslations_EnContainingIgnoreCase(query);
+        }
 
-    @GetMapping("/public/search-film")
-    public ResponseEntity<List<Map<String, Object>>> searchFilm(@RequestParam("query") String query) {
-        List<Film> films = filmRepository.findByFilmNameContainingIgnoreCase(query);
-        List<Map<String, Object>> results = films.stream().map(film -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", film.getFilmId());
-            map.put("name", film.getFilmName());
-            return map;
-        }).collect(Collectors.toList());
+        List<Map<String, Object>> results = films.stream()
+            .map(film -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", film.getFilmId());
+                map.put("name", film.getFilmNameTranslations().get(locale.toLowerCase()));
+                return map;
+            })
+            .collect(Collectors.toList());
+
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/public/film/{id}")
-    public ResponseEntity<?> getFilmDetails(@PathVariable Long id) {
+    public ResponseEntity<?> getFilmDetails(
+            @PathVariable Long id,
+            @RequestParam(value = "locale", defaultValue = "en") String locale) {
         Optional<Film> filmOptional = filmRepository.findById(id);
 
         if (filmOptional.isEmpty()) {
@@ -213,8 +246,10 @@ public class FilmController {
         Map<String, Object> result = new HashMap<>();
 
         result.put("id", film.getFilmId());
-        result.put("filmName", film.getFilmName());
-        result.put("filmDesc", film.getFilmDesc());
+        result.put("filmNameEn", film.getFilmNameTranslations().get("en"));
+        result.put("filmNameLt", film.getFilmNameTranslations().get("lt"));
+        result.put("filmDescEn", film.getFilmDescTranslations().get("en"));
+        result.put("filmDescLt", film.getFilmDescTranslations().get("lt"));
         result.put("filmReleaseDate", film.getFilmReleaseDate());
         result.put("filmRating", film.getFilmRating());
         result.put("filmGross", film.getFilmGross());
@@ -222,19 +257,27 @@ public class FilmController {
         Set<Map<String, Object>> actors = film.getFilmPersons().stream().map(fp -> {
             Map<String, Object> actorMap = new HashMap<>();
             actorMap.put("id", fp.getPerson().getPerson_id());
-            actorMap.put("name", fp.getPerson().getPersonFullName());
+            Map<String, String> translations = fp.getPerson().getPersonNameTranslations();
+            String name = translations.get(locale.toLowerCase());
+            if (name == null) {
+                name = translations.get("en");
+            }
+            actorMap.put("name", name);
             actorMap.put("role", fp.getRole());
             return actorMap;
         }).collect(Collectors.toSet());
 
-        Set<Map<String, Object>> genres = film.getGenres().stream()
-            .map(genre -> {
-                Map<String, Object> genreMap = new HashMap<>();
-                genreMap.put("id", genre.getGenre_id());
-                genreMap.put("name", genre.getGenreName());
-                return genreMap;
-            })
-            .collect(Collectors.toSet());
+        Set<Map<String, Object>> genres = film.getGenres().stream().map(genre -> {
+            Map<String, Object> genreMap = new HashMap<>();
+            genreMap.put("id", genre.getGenre_id());
+            Map<String, String> translations = genre.getGenreNameTranslations();
+            String name = translations.get(locale.toLowerCase());
+            if (name == null) {
+                name = translations.get("en");
+            }
+            genreMap.put("name", name);
+            return genreMap;
+        }).collect(Collectors.toSet());
 
         result.put("actors", actors);
         result.put("genres", genres);
@@ -256,16 +299,31 @@ public class FilmController {
     @SuppressWarnings("unused")
     @PostMapping("/public/films/filter")
     public ResponseEntity<Page<Map<String, Object>>> filterFilms(
-            @RequestBody FilmFilterRequest filterRequest, Authentication auth) {
+            @RequestBody FilmFilterRequest filterRequest, Authentication auth,
+            @RequestParam(value = "locale", defaultValue = "en") String locale) {
         int pageIndex = Math.max(filterRequest.getPage() - 1, 0);
         Pageable pageable = PageRequest.of(pageIndex, filterRequest.getSize());
         Specification<Film> spec = Specification.where(null);
 
+        String lang = "lt".equalsIgnoreCase(locale) ? "lt" : "en";
+
         if (filterRequest.getMovieName() != null && !filterRequest.getMovieName().trim().isEmpty()) {
+            String mName = "%" + filterRequest.getMovieName().trim().toLowerCase() + "%";
             spec = spec.and((root, query, cb) ->
-                cb.like(cb.lower(root.get("filmName")), "%" + filterRequest.getMovieName().trim().toLowerCase() + "%")
+                cb.like(
+                    cb.lower(
+                        cb.function(
+                            "jsonb_extract_path_text",
+                            String.class,
+                            root.get("filmNameTranslations"),
+                            cb.literal(lang)
+                        )
+                    ),
+                    mName
+                )
             );
         }
+
         if (filterRequest.getSelectedAgeRatings() != null && !filterRequest.getSelectedAgeRatings().isEmpty()) {
             spec = spec.and((root, query, cb) -> root.get("filmRating").in(filterRequest.getSelectedAgeRatings()));
         }
@@ -332,8 +390,17 @@ public class FilmController {
         Page<Map<String, Object>> resultPage = filmPage.map(film -> {
             Map<String, Object> result = new HashMap<>();
             result.put("id", film.getFilmId());
-            result.put("filmName", film.getFilmName());
-            result.put("filmDesc", film.getFilmDesc());
+            String filmName = film.getFilmNameTranslations().get(locale.toLowerCase());
+            if (filmName == null) {
+                filmName = film.getFilmNameTranslations().get("en");
+            }
+            result.put("filmName", filmName);
+
+            String desc = film.getFilmDescTranslations().get(locale.toLowerCase());
+            if (desc == null) {
+                desc = film.getFilmDescTranslations().get("en");
+            }
+            result.put("filmDesc", desc);
             result.put("filmReleaseDate", film.getFilmReleaseDate());
             result.put("filmRating", film.getFilmRating());
             result.put("filmGross", film.getFilmGross());
@@ -341,7 +408,12 @@ public class FilmController {
             Set<Map<String, Object>> actors = film.getFilmPersons().stream().map(fp -> {
                 Map<String, Object> actorMap = new HashMap<>();
                 actorMap.put("id", fp.getPerson().getPerson_id());
-                actorMap.put("name", fp.getPerson().getPersonFullName());
+                Map<String, String> translations = fp.getPerson().getPersonNameTranslations();
+                String name = translations.get(locale.toLowerCase());
+                if (name == null) {
+                    name = translations.get("en");
+                }
+                actorMap.put("name", name);
                 actorMap.put("role", fp.getRole());
                 return actorMap;
             }).collect(Collectors.toSet());
@@ -349,7 +421,12 @@ public class FilmController {
             Set<Map<String, Object>> genres = film.getGenres().stream().map(genre -> {
                 Map<String, Object> genreMap = new HashMap<>();
                 genreMap.put("id", genre.getGenre_id());
-                genreMap.put("name", genre.getGenreName());
+                Map<String, String> translations = genre.getGenreNameTranslations();
+                String name = translations.get(locale.toLowerCase());
+                if (name == null) {
+                    name = translations.get("en");
+                }
+                genreMap.put("name", name);
                 return genreMap;
             }).collect(Collectors.toSet());
 
