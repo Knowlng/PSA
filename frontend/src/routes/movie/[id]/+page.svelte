@@ -438,10 +438,28 @@
       });
 
       if (!response.ok) {
-        addToast({
-          message:  $_("ErrorMessages.somethingWentWrong"),
-          type: "error"
-        });
+        const text = await response.text();
+        if (text.includes("User not found")) {
+          addToast({
+            message: $_("ErrorMessages.userNotFound"),
+            type: "error"
+          });
+        } else if (text.includes("Film not found")) {
+          addToast({
+            message: $_("ErrorMessages.filmNotFound"),
+            type: "error"
+          });
+        } else if (text.includes("Comment already exists")) {
+          addToast({
+            message: $_("ErrorMessages.commentAlreadyExistsDeleteYourComment"),
+            type: "error"
+          });
+        } else {
+          addToast({
+            message: $_("ErrorMessages.somethingWentWrong"),
+            type: "error"
+          });
+        }
         return;
       } else {
         addToast({
@@ -633,9 +651,10 @@
     <h5><strong>{$_("MovieIdPage.description")}</strong></h5>
     <p class='ps-3 long-text'>{filmDetails?.filmDesc || ''}</p>
   </Container>
-  <Container class='d-flex justify-content-center align-items-center mb-4 flex-column'>
+  <Container class='d-flex justify-content-center align-items-center flex-column'>
     {#if localStorage.getItem('userLoggedIn') === 'true'}
       <h5 class='mb-4'><strong>{$_("MovieIdPage.yourReview")}</strong></h5>
+      <p>{$_("MovieIdPage.youCanOnlyHaveOneReview")}</p>
       <Container class="d-flex justify-content-center align-items-center">
         <Container style="width: 100%; max-width: 700px;">
           <Form>

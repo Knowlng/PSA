@@ -45,7 +45,8 @@
     "rating": "Rating ",
     "updateCurrentRaiting": "Update current rating of ",
     "rateThisMovie": "Rate this movie",
-    "rate":"Rate "
+    "rate":"Rate ",
+    "youCanOnlyHaveOneReview": "You can only have one review per movie!"
   },
   "ErrorMessages": {
     "somethingWentWrong": "Something went wrong. Please try again later.",
@@ -85,8 +86,8 @@
     "createdSuccessfully": "Created successfully.",
     "deletedSuccessfully": "Deleted successfully.",
     "userDisabledSuccessfully": "User disabled successfully.",
-    "userEnabledSuccessfully": "User enabled successfully."
-
+    "userEnabledSuccessfully": "User enabled successfully.",
+    "commentAlreadyExistsDeleteYourComment": "Comment already exists. Delete your comment to add a new one!."
   },
   "GenrePersonnelCreate": {
     "genre": "genre",

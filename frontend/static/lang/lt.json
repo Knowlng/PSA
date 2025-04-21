@@ -45,7 +45,8 @@
     "rating": "Įvertinkite ",
     "updateCurrentRaiting": "Atnaujinti dabartinį įvertinimą ",
     "rateThisMovie": "Įvertinkite šį filmą",
-    "rate":"Įvertinti "
+    "rate":"Įvertinti ",
+    "youCanOnlyHaveOneReview": "Galite turėti tik vieną apžvalgą per filmą!"
   },
   "ErrorMessages": {
     "somethingWentWrong": "Kažkas nepavyko. Prašome bandyti dar kartą vėliau.",
@@ -85,7 +86,8 @@
     "createdSuccessfully": "Sėkmingai sukurta.",
     "deletedSuccessfully": "Sėkmingai ištrinta.",
     "userDisabledSuccessfully": "Vartotojo paskyra sėkmingai išjungta.",
-    "userEnabledSuccessfully": "Vartotojo paskyra sėkmingai įjungta."
+    "userEnabledSuccessfully": "Vartotojo paskyra sėkmingai įjungta.",
+    "commentAlreadyExistsDeleteYourComment": "Komentaras jau egzistuoja. Ištrinkite savo komentarą, kad pridėtumėte naują!"
   },
   "GenrePersonnelCreate": {
     "genre": "Žanrą",

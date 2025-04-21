@@ -551,31 +551,31 @@ public class FilmController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
         User user = userOpt.get();
-        
+
         Optional<Film> filmOpt = filmRepository.findById(commentRequest.getFilmId());
         if (!filmOpt.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Film not found");
         }
         Film film = filmOpt.get();
-        
+
         CommentId id = new CommentId();
         id.setUserId(user.getUserId());
         id.setFilmId(film.getFilmId());
-        
+
         Optional<Comment> existingComment = commentRepository.findById(id);
-        Comment comment;
         if (existingComment.isPresent()) {
-            comment = existingComment.get();
-            comment.setCommentText(commentRequest.getCommentText());
-        } else {
-            comment = new Comment();
-            comment.setId(id);
-            comment.setCommentText(commentRequest.getCommentText());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Comment already exists");
         }
-        
+
+        Comment comment = new Comment();
+        comment.setId(id);
+        comment.setCommentText(commentRequest.getCommentText());
+
         commentRepository.save(comment);
         return ResponseEntity.ok("Comment saved successfully");
     }
+
 
     @GetMapping("/auth/comment")
     public ResponseEntity<?> getComment(@RequestParam("filmId") Long filmId, Authentication auth) {
