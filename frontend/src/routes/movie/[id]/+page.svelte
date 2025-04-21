@@ -8,10 +8,16 @@
   import Modal from '$lib/Modal.svelte';
   import StarRating from '$lib/StarRating.svelte';
   import { Container, Spinner, Form, Input, Button, Label } from '@sveltestrap/sveltestrap';
-  import { COMMENT_MAX_LENGTH, DEFAULT_PAGE_SIZE, COMMENT_FILTER_VALUES } from '$lib/consts.js';
+  import { COMMENT_MAX_LENGTH, DEFAULT_PAGE_SIZE } from '$lib/consts.js';
   import CustomPagination from '$lib/CustomPagination.svelte';
   import CommentCard from '$lib/CommentCard.svelte';
   import { _, locale } from "svelte-i18n";
+
+  const COMMENT_FILTER_VALUES = [
+    { id: 1, label: $_("MovieIdPage.byStars") },
+    { id: 2, label: $_("MovieIdPage.likedByYou") },
+    { id: 3, label: $_("MovieIdPage.dislikedByYou") }
+  ];
 
   let totalPages;
   let totalEntries;
@@ -69,7 +75,7 @@
       
       if (!response.ok) {
         addToast({
-          message: "Something went wrong. Please try again later.",
+          message: $_("ErrorMessages.somethingWentWrong"),
           type: "error",
         });
         return;
@@ -79,7 +85,7 @@
       averageRating = data.averageRating;
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     }
@@ -93,12 +99,12 @@
         const text = response.text();
         if(text.includes("Film not found")) {
           addToast({
-            message: "Entry not found",
+            message: $_("ErrorMessages.entryNotFound"),
             type: "error",
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error",
           });
         }
@@ -114,7 +120,7 @@
       }
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     }
@@ -134,12 +140,12 @@
         const text = await response.text();
         if (text.includes("Comment not found")) {
           addToast({
-            message: "Comment not found",
+            message: $_("ErrorMessages.commentNotFound"),
             type: "error",
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error",
           });
         }
@@ -147,7 +153,7 @@
       }
     
       addToast({
-        message: "Comment deleted successfully",
+        message: $_("ErrorMessages.commentDeletedSuccessfully"),
         type: "success",
       });
     
@@ -155,7 +161,7 @@
     
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     }
@@ -200,22 +206,22 @@
         const text = await response.text();
         if (text.includes("Film not found")) {
           addToast({
-            message: "Film not found",
+            message: $_("ErrorMessages.filmNotFound"),
             type: "error",
           });
         } else if (text.includes("User not found")) {
           addToast({
-            message: "User not found",
+            message: $_("ErrorMessages.userNotFound"),
             type: "error",
           });
         } else if (text.includes("Rating must be between")) {
           addToast({
-            message: "Rating must be between 1 and 10",
+            message: $_("ErrorMessages.raitingMustBeBetween"),
             type: "error",
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error",
           });
         }
@@ -224,14 +230,14 @@
       const result = await response.json();
       if (result) {
         addToast({
-          message: "Rating saved successfully",
+          message: $_("ErrorMessages.raitingSavedSuccessfully"),
           type: "success",
         });
         currentRating = result.rating;
       }
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     }
@@ -249,12 +255,12 @@
         const text = await response.text();
         if (text.includes("User not found")) {
           addToast({
-            message: "User not found",
+            message: $_("ErrorMessages.userNotFound"),
             type: "error"
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error"
           });
         }
@@ -265,7 +271,7 @@
       currentRating = data.rating;
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error"
       });
     }
@@ -305,12 +311,12 @@
         const text = await response.text();
         if (text.includes("Film not found")) {
           addToast({
-            message: "Film not found",
+            message: $_("ErrorMessages.filmNotFound"),
             type: "error",
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error",
           });
         }
@@ -323,7 +329,7 @@
       totalEntries = data.totalElements;
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     }
@@ -340,7 +346,7 @@
       
       if (!response.ok) {
         addToast({
-          message: "Something went wrong. Please try again later.",
+          message: $_("ErrorMessages.somethingWentWrong"),
           type: "error"
         });
         return null;
@@ -358,7 +364,7 @@
       }
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error"
       });
       return null;
@@ -376,22 +382,22 @@
         const text = await response.text();
         if (text.includes("Comment not found")) {
           addToast({
-            message: "No comment found to delete.",
+            message: $_("ErrorMessages.noCommentFoundToDelete"),
             type: "error"
           });
         } else if (text.includes("User not found")) {
           addToast({
-            message: "User not found.",
+            message: $_("ErrorMessages.userNotFound"),
             type: "error"
           });
         } else if (text.includes("Unauthorized")) {
           addToast({
-            message: "You must be logged in to delete a comment.",
+            message: $_("ErrorMessages.commentDeleteNotAuthorized"),
             type: "error"
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error"
           });
         }
@@ -399,7 +405,7 @@
       }
 
       addToast({
-        message: "Comment deleted successfully",
+        message: $_("ErrorMessages.commentDeletedSuccessfully"),
         type: "success"
       });
 
@@ -409,7 +415,7 @@
 
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error"
       });
     }
@@ -433,20 +439,20 @@
 
       if (!response.ok) {
         addToast({
-          message: "Something went wrong. Please try again later.",
+          message:  $_("ErrorMessages.somethingWentWrong"),
           type: "error"
         });
         return;
       } else {
         addToast({
-          message: "Comment saved successfully",
+          message:  $_("ErrorMessages.commentSavedSuccessfully"),
           type: "success"
         });
         showNotSavedText = false;
       }
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error"
       });
     }
@@ -486,22 +492,22 @@
         const text = await response.text();
         if (text.includes("User not found")) {
           addToast({
-            message: "User not found",
+            message: $_("ErrorMessages.userNotFound"),
             type: "error"
           });
         } else if (text.includes("Film not found")) {
           addToast({
-            message: "Film not found",
+            message: $_("ErrorMessages.filmNotFound"),
             type: "error"
           });
         } else if (text.includes("Comment not found")) {
           addToast({
-            message: "Comment not found",
+            message: $_("ErrorMessages.commentNotFound"),
             type: "error"
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error"
           });
         }
@@ -510,7 +516,7 @@
 
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error"
       });
     }
@@ -543,16 +549,16 @@
         <h1>{filmDetails?.filmName || ''}</h1>
       </Container>
       <Container class="pt-5">
-        <p><strong>Release Date:</strong> {filmDetails?.filmReleaseDate || '-'}</p>
-        <p><strong>Age Rating:</strong> {filmDetails?.filmRating || '-'}</p>
-        <p><strong>Gross:</strong> ${filmDetails?.filmGross != null ? filmDetails.filmGross : '-'}</p>
+        <p><strong>{$_("MovieIdPage.releaseDate:")}</strong> {filmDetails?.filmReleaseDate || '-'}</p>
+        <p><strong>{$_("MovieIdPage.ageRating:")}</strong> {filmDetails?.filmRating || '-'}</p>
+        <p><strong>{$_("MovieIdPage.gross:")}</strong> ${filmDetails?.filmGross != null ? filmDetails.filmGross : '-'}</p>
       </Container>
   </Container>
-  <Container class="d-flex flex-row">
+  <Container class="d-flex flex-row second-info-containter">
     <Container class="p-0">
       {#if filmDetails.genres && filmDetails.genres.length > 0}
         <p>
-          <strong>Genres:</strong>
+          <strong>{$_("MovieIdPage.genres:")}</strong>
           <span>
             {#each filmDetails.genres as genre, i}
               {i > 0 ? ', ' : ''}{genre.name ? genre.name : genre}
@@ -563,7 +569,7 @@
 
       {#if actors.length > 0}
         <p>
-          <strong>Actors:</strong>
+          <strong>{$_("MovieIdPage.actors:")}</strong>
           {#each actors as actor, i}
             <button 
               on:click={() => handleNameClick(actor)}>
@@ -575,7 +581,7 @@
 
       {#if directors.length > 0}
         <p>
-          <strong>Director/s:</strong>
+          <strong>{$_("MovieIdPage.directors:")}</strong>
           {#each directors as actor, i}
             <button
               on:click={() => handleNameClick(actor)}>
@@ -587,7 +593,7 @@
 
       {#if writers.length > 0}
         <p>
-          <strong>Writer/s:</strong>
+          <strong>{$_("MovieIdPage.writers:")}</strong>
           {#each writers as actor, i}
             <button
               on:click={() => handleNameClick(actor)}>
@@ -604,19 +610,19 @@
     {:else}
       <Container class="d-flex flex-column align-items-center justify-content-center">
         <Container class="d-flex justify-content-center align-items-center">
-          <p class="mb-0 me-2"><strong>Overall rating:</strong></p>
+          <p class="mb-0 me-2"><strong>{$_("MovieIdPage.overallRating:")}</strong></p>
           <strong><span class="me-1" style="font-size: 1.5rem;">{averageRating}</span></strong>
         <Star filled={true} color="yellow" size={40}/>
         </Container>
         {#if localStorage.getItem('userLoggedIn') === 'true'}
           <Container class="d-flex justify-content-center align-items-center">
-            <p class="mb-0 me-2"><strong>Your rating:</strong></p>
+            <p class="mb-0 me-2 text-center"><strong>{$_("MovieIdPage.yourRating:")}</strong></p>
             <strong><span class="me-1" style="font-size: 1.5rem;">{currentRating}</span></strong>
             <Star filled={currentRating ? true : false} color="blue" size={40} clickable={true} on:click={()=> modalOpen = true}/>
               {#if currentRating > 0}
-                <p class="ms-2 mb-0"><em>(Click to update)</em></p>
+                <p class="ms-2 mb-0"><em>{$_("MovieIdPage.clickToUpdate")}</em></p>
               {:else}
-                <p class="ms-2 mb-0"><em>(Click to rate)</em></p>
+                <p class="ms-2 mb-0"><em>{$_("MovieIdPage.clickToRate")}</em></p>
               {/if}
           </Container>
         {/if}
@@ -624,12 +630,12 @@
     {/if}
   </Container>
   <Container class='mb-4'>
-    <h5><strong>Description</strong></h5>
+    <h5><strong>{$_("MovieIdPage.description")}</strong></h5>
     <p class='ps-3 long-text'>{filmDetails?.filmDesc || ''}</p>
   </Container>
   <Container class='d-flex justify-content-center align-items-center mb-4 flex-column'>
     {#if localStorage.getItem('userLoggedIn') === 'true'}
-      <h5 class='mb-4'><strong>Your review</strong></h5>
+      <h5 class='mb-4'><strong>{$_("MovieIdPage.yourReview")}</strong></h5>
       <Container class="d-flex justify-content-center align-items-center">
         <Container style="width: 100%; max-width: 700px;">
           <Form>
@@ -638,31 +644,31 @@
               on:input={resize} bind:value={commentText}
               style="resize: none;"
               maxlength={COMMENT_MAX_LENGTH}
-              placeholder="Write your review here..."
+              placeholder={$_("MovieIdPage.writeYourReviewHere")}
               on:keydown={saveComment}
               on:keypress={saveComment}
             />
-            <p class='m-0'><em>{showNotSavedText ? 'Review not saved yet' : ''}</em></p>
+            <p class='m-0'><em>{showNotSavedText ? $_("MovieIdPage.reviewNotSavedYet") : ''}</em></p>
             <Container class='d-flex mt-4 justify-content-between align-items-center'>
-              <Button type="submit" color="danger" on:click={handleCommentDelete}>Delete</Button>
-              <Button type="submit" color="primary" on:click={handleCommentSubmit}>Save</Button>
+              <Button type="submit" color="danger" on:click={handleCommentDelete}>{$_("MovieIdPage.delete")}</Button>
+              <Button type="submit" color="primary" on:click={handleCommentSubmit}>{$_("MovieIdPage.save")}</Button>
             </Container>
           </Form>
         </Container>
       </Container>
     {/if}
-    <h5 class='mb-4 mt-4'><strong>All reviews</strong></h5> 
-    <Container class="d-flex justify-content-center align-items-center mb-3 gap-3">
-      <Input bind:value={filterTypeId} type="select" style="width:300px;">
+    <h5 class='mb-4 mt-4'><strong>{$_("MovieIdPage.allReviews")}</strong></h5> 
+    <Container class="d-flex justify-content-center align-items-center mb-3 gap-3 filter-container">
+      <Input bind:value={filterTypeId} type="select" style="width:200px;" class="filter-select">
         {#each filteredOptions as option}
           <option value={option.id}>{option.label}</option>
         {/each}
       </Input>
-      <Input  bind:value={sortOrder} type="select" style="width:100px;">
-        <option default value="DESC">DESC</option>
-        <option value="ASC">ASC</option>
+      <Input  bind:value={sortOrder} type="select" style="width:150px;" class="filter-select-order">
+        <option default value="DESC">{$_("MovieIdPage.sortOrderDESC")}</option>
+        <option value="ASC">{$_("MovieIdPage.sortOrderASC")}</option>
       </Input>
-      <Button color="primary" type="submit" on:click={filterComments}>Filter</Button>
+      <Button color="primary" type="submit" on:click={filterComments}>{$_("MovieIdPage.filter")}</Button>
     </Container>
       {#if totalPages > 1}
         <Container class="d-flex justify-content-center mb-1">
@@ -674,13 +680,14 @@
       <Spinner color="warning"/>
     </Container>
     {:else if comments && comments.length > 0}
-        <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 450px; max-width: 700px;">
-          <Container>Total pages: {totalPages}</Container>
-          <Container class="text-center">Total Entries: {totalEntries}</Container>
-          <Container style="min-width: 100px; max-width: 100px;" class="text-end p-0 d-flex align-items-center justify-content-end">
-            <Label class="m-0" for="perPage">Per page:</Label>
-          </Container>
-          <Container style="min-width: 100px; max-width: 100px;">
+        <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 100px; max-width: 700px;">
+          <Container class="text-center">{$_("MovieIdPage.totalPages:")} {totalPages}</Container>
+          <Container class="text-center">{$_("MovieIdPage.totalEntries:")}{totalEntries}</Container>
+          <Container class="d-flex per-page-panel text-center">
+            <Container style="min-width: 100px; max-width: 100px;" class="per-page-label text-end p-0 d-flex align-items-center justify-content-end">
+              <Label class="m-0" for="perPage">{$_("MovieIdPage.perPage:")}</Label>
+            </Container>
+            <Container style="min-width: 75px; max-width: 75px;">
             <select key={perPage} type="select" bind:value={perPage} on:change={handlePerPageChange}>
               <option value="10">10</option>
               <option value="25">25</option>
@@ -688,12 +695,13 @@
               <option value="75">75</option>
               <option value="100">100</option>
             </select>
+            </Container>
           </Container>
         </Container>
     {:else}
       <Container class="text-center mt-4">
-        <h4>No Reviews found</h4>
-        <h4>Be the first one to leave a review!</h4>
+        <h4>{$_("MovieIdPage.noReviewsFound")}</h4>
+        <h4>{$_("MovieIdPage.leaveAReview")}</h4>
       </Container>
     {/if}
     </Container>
@@ -716,9 +724,9 @@
   {/if}
 {#if modalOpen}
   <Modal 
-    modalTitle={"Rating " + filmDetails?.filmName || ''}
-    modalBody={ currentRating ? "Update current rating of " + currentRating : "Rate this movie:"}
-    buttonText={"Rate " + rating}
+    modalTitle={$_("MovieIdPage.rating") + filmDetails?.filmName || ''}
+    modalBody={ currentRating ? $_("MovieIdPage.updateCurrentRaiting") + currentRating : $_("MovieIdPage.rateThisMovie")}
+    buttonText={$_("MovieIdPage.rate") + rating}
     buttonColor="primary"
     on:toggle={() => { modalOpen = false; rating = ''; }}
     on:confirm={confirmHandler}
@@ -749,5 +757,30 @@
     white-space: normal;
     overflow-wrap: break-word;
     word-wrap: break-word;
+  }
+
+  @media (max-width: 530px) {
+    :global(.filter-container) {
+      flex-direction: column;
+    }
+    :global(.filter-select) {
+      width: 250px !important;
+      margin-bottom: 10px;
+    }
+    :global(.filter-select-order) {
+      width: 250px !important;
+      margin-bottom: 10px;
+    }
+    :global(.second-info-containter) {
+      flex-direction: column !important;
+      margin-bottom: 10px;
+    }
+    :global(.per-page-label) {
+      display: block !important;
+      text-align: center !important;
+    }
+    :global(.per-page-panel) {
+      flex-direction: column;
+    }
   }
 </style>

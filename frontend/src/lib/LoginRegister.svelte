@@ -10,6 +10,7 @@
     import { PASS_REGEX, USER_NAME_LENGTH, USER_PASS_LENGTH } from '$lib/consts.js';
     import { addToast } from "$lib/ToastNotification/toastStore.js";
     import { onMount } from 'svelte';
+    import { _ } from "svelte-i18n";
 
     export let type;
 
@@ -40,17 +41,17 @@
                     return response.text().then(text => {
                         if (text.includes("Invalid username or password")) {
                             addToast({
-                                message: "Invalid username or password",
+                                message: $_("ErrorMessages.invalidUserNameOrPassword"),
                                 type: "error",
                             });
                         } else if (text.includes("User account is disabled")) {
                             addToast({
-                                message: "User account is disabled",
+                                message: $_("ErrorMessages.userAccountIsDisabled"),
                                 type: "error",
                             });
                         } else {
                             addToast({
-                                message: "Something went wrong. Please try again later.",
+                                message: $_("ErrorMessages.somethingWentWrong"),
                                 type: "error",
                             });
                         }
@@ -69,21 +70,21 @@
             })
             .catch(error => {
                 addToast({
-                    message: "Something went wrong. Please try again later.",
+                    message: $_("ErrorMessages.somethingWentWrong"),
                     type: "error",
                 });
             })
         } else {
             if (!PASS_REGEX.test(password)) {
                 addToast({
-                    message: "Password does not meet the requirements",
+                    message: $_("ErrorMessages.passwordDoesNotMeetTheRequirements"),
                     type: "error",
                 });
                 return;
             }
             if (password !== repeatedPass) {
                 addToast({
-                    message: "Passwords do not match",
+                    message: $_("ErrorMessages.passwordsDoNotMatch"),
                     type: "error",
                 });
                 return;
@@ -101,12 +102,12 @@
                     return response.text().then(text => {
                         if (text.includes("Username is already taken")) {
                             addToast({
-                                message: "Username is already taken",
+                                message: $_("ErrorMessages.usernameIsAlreadyTaken"),
                                 type: "error",
                             });
                         } else {
                             addToast({
-                                message: "Something went wrong. Please try again later.",
+                                message: $_("ErrorMessages.somethingWentWrong"),
                                 type: "error",
                             });
                         }
@@ -122,7 +123,7 @@
             })
             .catch(error => {
                 addToast({
-                    message: "Something went wrong. Please try again later.",
+                    message: $_("ErrorMessages.somethingWentWrong"),
                     type: "error",
                 });
             })
@@ -136,35 +137,35 @@
 </script>
 
 <Container class="pt-5">
-    <h1 class="text-center mb-5">{type === 'login' ? 'Log in' : 'Register'}</h1>
+    <h1 class="text-center mb-5">{type === 'login' ?  $_("LoginRegister.login") : $_("LoginRegister.register")}</h1>
     {#if type === 'register'}
-        <p class="text-center">Please provide a password that contains:</p>
+        <p class="text-center">{$_("LoginRegister.pleaseProvideAPasswordThatContains:")}</p>
         <ul class="text-center" style="list-style-type: none;">
-            <li>At least <strong>8 characters</strong></li>
-            <li>At least one <strong>uppercase letter</strong></li>
-            <li>At least one <strong>number</strong></li>
-            <li>At least one <strong>special character</strong></li>
+            <li>{$_("LoginRegister.atLeast")}<strong> 8 {$_("LoginRegister.characters")}</strong></li>
+            <li>{$_("LoginRegister.atLeastOne")}<strong>{$_("LoginRegister.uppercaseLetter")}</strong></li>
+            <li>{$_("LoginRegister.atLeastOne")}<strong>{$_("LoginRegister.number")}</strong></li>
+            <li>{$_("LoginRegister.atLeastOne")}<strong>{$_("LoginRegister.specialCharacter")}</strong></li>
         </ul>
     {/if}
     <Form class="w-75 mx-auto" style="min-width: 200px; max-width: 300px;"> 
         <FormGroup>
-            <Label>Username</Label>
-            <Input bind:value={username} maxlength={USER_NAME_LENGTH} required placeholder="Enter your username" />
+            <Label>{$_("LoginRegister.username")}</Label>
+            <Input bind:value={username} maxlength={USER_NAME_LENGTH} required placeholder={$_("LoginRegister.enterYourUserName")} />
         </FormGroup>
         <FormGroup>
-            <Label>Password</Label>
-            <Input bind:value={password} maxlength={USER_PASS_LENGTH} type={type === 'login' ? 'password' : ''} required placeholder="Enter your password" />
+            <Label>{$_("LoginRegister.password")}</Label>
+            <Input bind:value={password} maxlength={USER_PASS_LENGTH} type={type === 'login' ? 'password' : ''} required placeholder={$_("LoginRegister.enterYourPassword")}  />
         </FormGroup>
         {#if type === 'register'}
             <FormGroup>
-                <Label>Repeat password</Label>
-                <Input bind:value={repeatedPass} maxlength={USER_PASS_LENGTH} required placeholder="Repeat your password" />
+                <Label>{$_("LoginRegister.repeatPassword")}</Label>
+                <Input bind:value={repeatedPass} maxlength={USER_PASS_LENGTH} required placeholder={$_("LoginRegister.repeatYourPassword")} />
             </FormGroup>
         {/if}
         <Container class="d-flex flex-column p-0">
             <Container class="text-center p-0 mb-4">
                 <Button color="primary" on:click={handleSubmit}>
-                    {type === 'login' ? 'Login' : 'Register'}
+                    {type === 'login' ? $_("LoginRegister.login") : $_("LoginRegister.register")}
                 </Button>
             </Container>
             <Container class="d-flex p-0 justify-content-end">
@@ -173,7 +174,7 @@
                     class="p-0" 
                     style="text-decoration: underline; color: inherit; font-weight: bold;"
                 >
-                    {type === 'login' ? 'Register instead' : 'Login instead'}
+                    {type === 'login' ? $_("LoginRegister.registerInstead")  : $_("LoginRegister.loginInstead")}
                 </a>
             </Container>
         </Container>        

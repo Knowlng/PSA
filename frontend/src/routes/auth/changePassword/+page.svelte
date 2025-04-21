@@ -11,6 +11,7 @@
     import { PASS_REGEX, USER_PASS_LENGTH, USER_NAME_LENGTH } from '$lib/consts.js';
     import { addToast } from "$lib/ToastNotification/toastStore.js";
     import { onMount } from 'svelte';
+    import { _ } from "svelte-i18n";
 
     let password = '';
     let repeatedPass = '';
@@ -26,14 +27,14 @@
         }
         if (!PASS_REGEX.test(password)) {
             addToast({
-                message: "Password does not meet the requirements",
+                message: $_("ErrorMessages.passwordDoesNotMeetTheRequirements"),
                 type: "error",
             });   
             return;
         }
         if (password !== repeatedPass) {
             addToast({
-                message: "Passwords do not match",
+                message: $_("ErrorMessages.passwordsDoNotMatch"),
                 type: "error",
             });  
             return;
@@ -60,27 +61,27 @@
                 return response.text().then(text => {
                     if (text.includes("Not logged in")) {
                         addToast({
-                            message: "Not logged in",
+                            message: $_("ErrorMessages.notLoggedIn"),
                             type: "error",
                         });
                     } else if (text.includes("User not found")) {
                         addToast({
-                            message: "User not found",
+                            message: $_("ErrorMessages.userNotFound"),
                             type: "error",
                         });
                     } else if (text.includes("Passwords do not match")) {
                         addToast({
-                            message: "Passwords do not match",
+                            message: $_("ErrorMessages.passwordsDoNotMatch"),
                             type: "error",
                         });
                     } else if (text.includes("New password cannot be the same as the old password")) {
                         addToast({
-                            message: "New password cannot be the same as the old password",
+                            message: $_("ErrorMessages.newPasswordCannotBeTheSameAsOldPassword"),
                             type: "error",
                         });
                     } else {
                         addToast({
-                            message: "Something went wrong. Please try again later.",
+                            message: $_("ErrorMessages.somethingWentWrong"),
                             type: "error",
                         });
                     }
@@ -92,14 +93,14 @@
         .then(result => {
             if (result !== null) {
                 addToast({
-                    message: "Password changed successfully",
+                    message: $_("ErrorMessages.passwordChangedSuccessfully"),
                     type: "success",
                 });
             }
         })
         .catch(error => {
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         })
@@ -113,7 +114,7 @@
     async function confirmDelete() {
         if (deletePassInput.trim() === '') {
             addToast({
-                message: "Please enter your password",
+                message: $_("ErrorMessages.pleaseEnterYourPassword"),
                 type: "error",
             });
             return;
@@ -133,22 +134,22 @@
                 const text = await response.text();
                 if (text.includes("Not logged in")) {
                     addToast({
-                        message: "Not logged in",
+                        message: $_("ErrorMessages.notLoggedIn"),
                         type: "error",
                     });
                 } else if (text.includes("User not found")) {
                     addToast({
-                        message: "User not found",
+                        message: $_("ErrorMessages.userNotFound"),
                         type: "error",
                     });
                 } else if (text.includes("Invalid password")) {
                     addToast({
-                        message: "Invalid password",
+                        message: $_("ErrorMessages.invalidPassword"),
                         type: "error",
                     });
                 } else {
                     addToast({
-                        message: "Something went wrong. Please try again later.",
+                        message: $_("ErrorMessages.somethingWentWrong"),
                         type: "error",
                     });
                 }
@@ -160,13 +161,13 @@
                 localStorage.clear();
                 window.location.href = '/';
                 addToast({
-                    message: "Account deleted successfully",
+                    message: $_("ErrorMessages.accountDeletedSuccessfully"),
                     type: "success",
                 });
             }
         } catch (error) {
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         }
@@ -179,54 +180,54 @@
 
 </script>
 <Container class="pt-5">
-    <h1 class="text-center mb-5">Change Password</h1>
-    <p class="text-center">Please provide a password that contains:</p>
+    <h1 class="text-center mb-5">{$_("ChangePassword.changePassword")}</h1>
+    <p class="text-center">{$_("LoginRegister.pleaseProvideAPasswordThatContains:")}</p>
     <ul class="text-center" style="list-style-type: none;">
-        <li>At least <strong>8 characters</strong></li>
-        <li>At least one <strong>uppercase letter</strong></li>
-        <li>At least one <strong>number</strong></li>
-        <li>At least one <strong>special character</strong></li>
+        <li>{$_("LoginRegister.atLeast")}<strong> 8 {$_("LoginRegister.characters")}</strong></li>
+        <li>{$_("LoginRegister.atLeastOne")}<strong>{$_("LoginRegister.uppercaseLetter")}</strong></li>
+        <li>{$_("LoginRegister.atLeastOne")}<strong>{$_("LoginRegister.number")}</strong></li>
+        <li>{$_("LoginRegister.atLeastOne")}<strong>{$_("LoginRegister.specialCharacter")}</strong></li>
     </ul>
     <Form class="w-75 mx-auto" style="min-width: 200px; max-width: 300px;"> 
         <FormGroup>
-            <Label>New Password</Label>
-            <Input bind:value={password} maxlength={USER_PASS_LENGTH} required placeholder="Enter new password" />
+            <Label>{$_("ChangePassword.newPassword")}</Label>
+            <Input bind:value={password} maxlength={USER_PASS_LENGTH} required placeholder={$_("ChangePassword.enterNewPassword")} />
         </FormGroup>
         <FormGroup>
-            <Label>Repeat new password</Label>
-            <Input bind:value={repeatedPass} maxlength={USER_PASS_LENGTH} required placeholder="Repeat new password" />
+            <Label>{$_("ChangePassword.repeatNewPassword")}</Label>
+            <Input bind:value={repeatedPass} maxlength={USER_PASS_LENGTH} required placeholder={$_("ChangePassword.enterRepeatNewPassword")} />
         </FormGroup>
         <Container class="text-center p-0 mb-4">
             <Button color="primary" on:click={changeHandler}>
-                Change
+                {$_("ChangePassword.change")}
             </Button>
         </Container>
     </Form>
     <Container class="d-flex justify-content-end w-25">
-        <button on:click={() => { deleteAccountModalOpen = true; }} class="delete-account">Delete account?</button>
+        <button on:click={() => { deleteAccountModalOpen = true; }} class="delete-account">{$_("ChangePassword.deleteAccount")}</button>
     </Container>
 </Container>
 {#if changeModalOpen}
     <Modal 
-        modalTitle={"Change password?"}
-        modalBody={"This action can not be undone!"}
-        buttonText="Change"
+        modalTitle={$_("ChangePassword.changePassword")}
+        modalBody={$_("ChangePassword.thisActionCannotBeUndone")}
+        buttonText={$_("ChangePassword.change")}
         on:toggle={() => { changeModalOpen = false; }}
         on:confirm={confirmChange}
     />
 {/if}
 {#if deleteAccountModalOpen}
     <Modal 
-        modalTitle={"Are you sure you want to delete your account?"}
-        modalBody={"This action cannot be undone!"}
-        buttonText="Delete"
+        modalTitle={$_("ChangePassword.areYouSureYouWantToDeleteYourAccount")}
+        modalBody={$_("ChangePassword.thisActionCannotBeUndone")}
+        buttonText={$_("ChangePassword.deleteAccountButton")}
         on:toggle={() => { deleteAccountModalOpen = false; deletePassInput = ''; }}
         on:confirm={confirmDelete}
     >
         <Form> 
             <FormGroup class="text-center">
-                <Label>Type in your <strong>password</strong> to delete your account</Label>
-                <Input bind:value={deletePassInput} maxlength={USER_PASS_LENGTH} placeholder="password" type="password"/>
+                <Label>{$_("ChangePassword.typeInYour")}<strong>{$_("ChangePassword.password")}</strong>{$_("ChangePassword.toConfirm")}</Label>
+                <Input bind:value={deletePassInput} maxlength={USER_PASS_LENGTH} placeholder={$_("ChangePassword.inputPassword")} type="password"/>
             </FormGroup>
         </Form>
     </Modal>

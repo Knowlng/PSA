@@ -15,6 +15,7 @@
   } from '@sveltestrap/sveltestrap';
   import { addToast } from "$lib/ToastNotification/toastStore.js";
   import LanguageDropdown from "$lib/LanguageDropdown.svelte";
+  import { _ } from "svelte-i18n";
 
   let username;
 
@@ -30,7 +31,7 @@
         if (!response.ok) {
           return response.text().then(text => {
             addToast({
-              message: "Something went wrong. Please try again later.",
+              message: $_("ErrorMessages.somethingWentWrong"),
               type: "error",
             });
             return null;
@@ -48,7 +49,7 @@
     })
     .catch(error => {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     });
@@ -75,41 +76,41 @@
     <Nav class="ms-auto" navbar>
       {#if localStorage.getItem('userLoggedIn') === 'false'}
       <NavItem>
-        <NavLink href="/login">Login</NavLink>
+        <NavLink href="/login">{$_("Nav.login")}</NavLink>
       </NavItem>
       <NavItem>
-        <NavLink href="/register">Register</NavLink>
+        <NavLink href="/register">{$_("Nav.register")}</NavLink>
       </NavItem>
       {/if}
       {#if localStorage.getItem('userLoggedIn') === 'true' && localStorage.getItem('role') === 'admin'}
         <Dropdown nav inNavbar>
-          <DropdownToggle nav caret>Manage</DropdownToggle>
+          <DropdownToggle nav caret>{$_("Nav.manage")}</DropdownToggle>
           <DropdownMenu end>
-            <DropdownItem><NavLink href="/manage/manageMovies">Manage Movies</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/updateGenre">Update Genre</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/createGenre">Create Genre</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/updatePersonnel">Update Personnel</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/createPersonnel">Create Personnel</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/manage/manageUsers">Manage Users</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/manageMovies">{$_("Nav.manageMovies")}</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/updateGenre">{$_("Nav.updateGenres")} </NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/createGenre">{$_("Nav.createGenres")}</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/updatePersonnel">{$_("Nav.updatePersonnel")}</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/createPersonnel">{$_("Nav.createPersonnel")}</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/manage/manageUsers">{$_("Nav.manageUsers")}</NavLink></DropdownItem>
           </DropdownMenu>
         </Dropdown>
       {/if}
       {#if localStorage.getItem('userLoggedIn') === 'true'}
         <Dropdown nav inNavbar>
-          <DropdownToggle nav caret>Profile</DropdownToggle>
+          <DropdownToggle nav caret>{$_("Nav.profile")}</DropdownToggle>
           <DropdownMenu end>
             {#if username}
-              <DropdownItem style="font-weight:bold; cursor:default;">Logged in as {username}</DropdownItem>
+              <DropdownItem style="font-weight:bold; cursor:default;">{$_("Nav.loggedInAs")}{username}</DropdownItem>
             {/if}
-            <DropdownItem><NavLink href="/auth/changeUsername">Change Username</NavLink></DropdownItem>
-            <DropdownItem><NavLink href="/auth/changePassword">Change Password & Profile settings</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/auth/changeUsername">{$_("Nav.changeUsername")}</NavLink></DropdownItem>
+            <DropdownItem><NavLink href="/auth/changePassword">{$_("Nav.changePasswordAndProfileSettings")}</NavLink></DropdownItem>
           </DropdownMenu>
         </Dropdown>
       {/if}
       <LanguageDropdown/>
       {#if localStorage.getItem('userLoggedIn') === 'true'}
         <NavItem>
-          <NavLink on:click={handleLogout}>Logout</NavLink>
+          <NavLink on:click={handleLogout}>{$_("Nav.logout")}</NavLink>
         </NavItem>
       {/if}
     </Nav>

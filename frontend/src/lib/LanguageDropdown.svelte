@@ -8,14 +8,10 @@
         DropdownItem
     } from '@sveltestrap/sveltestrap';
 
-    let selectedLanguage;
-
-
-
 </script>
 
 <Dropdown nav inNavbar>
-    <DropdownToggle nav caret>{$_("language")} {($locale || '').toUpperCase()}</DropdownToggle>
+    <DropdownToggle nav caret>{$_("LanguageDropdown.language")} {($locale || '').toUpperCase()}</DropdownToggle>
     <DropdownMenu end>
         {#each Object.values(AVAILABLE_LOCALES) as item}
             <DropdownItem class='uppercase' on:click={() => { 

@@ -101,34 +101,34 @@
         const text = await response.text();
         if (text.includes("Name already exists")) {
           addToast({
-            message: "Name already exists",
+            message: $_("ErrorMessages.nameAlreadyExists"),
             type: "error",
           });
         } else if (text.includes("Film not found")) {
           addToast({
-            message: "Entry not found",
+            message: $_("ErrorMessages.entryNotFound"),
             type: "error",
           });
         } else if (text.includes("English name already exists")) {
           addToast({
-            message: "English name already exists",
+            message: $_("ErrorMessages.englishEntryAlreadyExists"),
             type: "error",
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error",
           });
         }
       } else {
         if (movieId) {
           addToast({
-            message: "Updated successfully",
+            message: $_("ErrorMessages.updatedSuccessfully"),
             type: "success",
           });
         } else {
           addToast({
-            message: "Created successfully",
+            message: $_("ErrorMessages.createdSuccessfully"),
             type: "success",
           });
         }
@@ -136,7 +136,7 @@
     })
     .catch(error => {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     })
@@ -193,12 +193,12 @@
         const text = response.text();
         if(text.includes("Film not found")) {
           addToast({
-            message: "Entry not found",
+            message: $_("ErrorMessages.entryNotFound"),
             type: "error",
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error",
           });
         }
@@ -225,7 +225,7 @@
 
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     }
@@ -247,25 +247,25 @@
         const text = await response.text();
         if (text.includes("Film not found")) {
           addToast({
-            message: "Entry not found",
+            message: $_("ErrorMessages.entryNotFound"),
             type: "error",
           });
         } else {
           addToast({
-            message: "Something went wrong. Please try again later.",
+            message: $_("ErrorMessages.somethingWentWrong"),
             type: "error",
           });
         }
         return;
       } else {
         addToast({
-          message: "Deleted successfully",
+          message: $_("ErrorMessages.deletedSuccessfully"),
           type: "success",
         });
       }
     } catch (error) {
       addToast({
-        message: "Something went wrong. Please try again later.",
+        message: $_("ErrorMessages.somethingWentWrong"),
         type: "error",
       });
     }
@@ -294,14 +294,14 @@
 </script>
 
 <Container>
-  <h1>Edit Movie Info</h1>
+  <h1>{$_("manageMovies.editMovieInfo")}</h1>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div role="group" on:keydown={preventEnterSubmit}>
     <Form class="w-75 mx-auto mb-3" style="min-width: 100px; max-width: 700px;">
       <FormGroup class="mb-4">
           <SearchField
-            placeholder="Enter English movie name" 
-            feedback="Can't be empty"
+            placeholder={$_("manageMovies.enterEnglishMovieName")} 
+            feedback={$_("manageMovies.cantBeEmpty")}
             maxlength={MAX_MOVIE_NAME_LENGTH}
             bind:value={movieNameEn}
             invalid={movieNameInvalidEn}
@@ -314,8 +314,8 @@
         </FormGroup>
         <FormGroup class="mb-4">
           <SearchField
-            placeholder="Enter Lithuanian movie name" 
-            feedback="Can't be empty"
+            placeholder={$_("manageMovies.enterLithuanianMovieName")}
+            feedback={$_("manageMovies.cantBeEmpty")}
             maxlength={MAX_MOVIE_NAME_LENGTH} 
             bind:value={movieNameLt}
             invalid={movieNameInvalidLt} 
@@ -327,9 +327,9 @@
           />
         </FormGroup>
         <InputGroup class="mb-4 age-date-gross">
-          <FormGroup floating label="Age rating" class="override-mb">
+          <FormGroup floating label={$_("manageMovies.ageRating")} class="override-mb">
             <Input type="select" bind:value={ageRating}>
-              <option value="">Select</option>
+              <option value="">{$_("manageMovies.select")}</option>
               <option value="G">G</option>
               <option value="PG">PG</option>
               <option value="PG-13">PG-13</option>
@@ -340,16 +340,16 @@
           <Input type="date" bind:value={movieDate} />
           <InputGroupText class='dollar-sign'>$</InputGroupText>
           <Input 
-            placeholder="Gross $" 
+            placeholder={$_("manageMovies.gross")}
             type="number" step="1" min="0"
             max={MAX_GROSS}
-            feedback="Invalid gross amount"
+            feedback={$_("manageMovies.invalidGrossAmount")}
             bind:value={gross} 
             invalid={grossInvalid} 
             on:focus={() => grossInvalid = false}
           />
         </InputGroup>
-        <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/public/search-genre`} clearOnSelect={true}/>
+        <SearchField placeholder={$_("manageMovies.enterGenre")} maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/public/search-genre`} clearOnSelect={true}/>
         <ListGroup flush class="mt-4">
           {#each genreArray as { id, name }, index}
           <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
@@ -357,12 +357,12 @@
               {name}
             </Container>
             <Container class="d-flex justify-content-end p-0">
-              <Button type="button" color="danger" on:click={() => removeGenre(index)}>Remove</Button>  
+              <Button type="button" color="danger" on:click={() => removeGenre(index)}>{$_("manageMovies.remove")}</Button>  
             </Container>
           </ListGroupItem>
         {/each}
         </ListGroup>
-        <SearchField placeholder="Enter Person Name" maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:select={handlePersonEnter} searchEndpoint={`/api/public/search-person`} clearOnSelect={true}/>
+        <SearchField placeholder={$_("manageMovies.enterPersonName")} maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:select={handlePersonEnter} searchEndpoint={`/api/public/search-person`} clearOnSelect={true}/>
         <ListGroup flush class="mt-4">
           {#each actorArray as { id, name}, index}
             <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
@@ -371,41 +371,41 @@
               </Container>
               <Container class="d-flex justify-content-end p-0">
                 <Input type="select" class="w-50" bind:value={actorArray[index].role}>
-                  {#each ["director", "writer", "actor"] as option}
-                    <option value={option}>{option}</option>
-                  {/each}
+                  <option value="director">{$_("manageMovies.director")}</option>
+                  <option value="writer">{$_("manageMovies.writer")}</option>
+                  <option value="actor">{$_("manageMovies.actor")}</option>
                 </Input>
-                <Button type="button" color="danger" on:click={() => removeActor(index)}>Remove</Button>  
+                <Button type="button" color="danger" on:click={() => removeActor(index)}>{$_("manageMovies.remove")}</Button>  
               </Container>
             </ListGroupItem>
           {/each}
         </ListGroup>
         <FormGroup>
-          <Label>English Description</Label>
+          <Label>{$_("manageMovies.englishDescription")}</Label>
           <Input 
             rows={1} type="textarea" bind:inner
             on:input={resize} bind:value={descriptionEn}
             maxlength={MAX_DESC_LENGTH} style="resize: none;" 
-            required feedback="Can't be empty"
+            required feedback={$_("manageMovies.cantBeEmpty")}
             invalid={descriptionInvalidEn}
             on:focus={() => descriptionInvalidEn = false}
           />
         </FormGroup>
         <FormGroup>
-          <Label>Lithuanian Description</Label>
+          <Label>{$_("manageMovies.englishDescription")}</Label>
           <Input 
             rows={1} type="textarea" bind:inner 
             on:input={resize} bind:value={descriptionLt}
             maxlength={MAX_DESC_LENGTH} style="resize: none;" 
-            required feedback="Can't be empty"
+            required feedback={$_("manageMovies.cantBeEmpty")}
             invalid={descriptionInvalidLt}
             on:focus={() => descriptionInvalidLt = false}
           />
         </FormGroup>
         <Container class="text-center justify-content-between {movieId ? 'd-flex' : ''}">
-          <Button type="submit" color="{movieId ? 'success' : 'primary'}" style="text-align:center;" on:click={submitHandler}>{movieId ? 'Change' : 'Create'}</Button>
+          <Button type="submit" color="{movieId ? 'success' : 'primary'}" style="text-align:center;" on:click={submitHandler}>{movieId ? $_("manageMovies.change") : $_("manageMovies.create")}</Button>
             {#if movieId}
-              <Button type="button" color="danger" style="text-align:center;" on:click={() => { modalOpen = true; }}>Delete</Button>
+              <Button type="button" color="danger" style="text-align:center;" on:click={() => { modalOpen = true; }}>{$_("manageMovies.delete")}</Button>
             {/if}
         </Container>
     </Form>
@@ -413,9 +413,9 @@
 </Container>
 {#if modalOpen}
     <Modal 
-      modalTitle={"Are you sure you want to delete " + movieNameEn + "?"}
-      modalBody={"This will remove " + movieNameEn + " from the public listing"}
-      buttonText="Delete"
+      modalTitle={$_("manageMovies.areYouSureYouWantToDelete") + movieNameEn + "?"}
+      modalBody={$_("manageMovies.thisWillRemove") + movieNameEn + $_("manageMovies.fromThePublicListing")}
+      buttonText={$_("manageMovies.delete")}
       on:toggle={() => { modalOpen = false; }}
       on:confirm={deleteMovie}
     />

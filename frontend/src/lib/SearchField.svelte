@@ -42,7 +42,7 @@
       })
       .catch(error => {
         addToast({
-          message: "Something went wrong. Please try again later.",
+          message: $_("ErrorMessages.somethingWentWrong"),
           type: "error",
         });
         suggestions = [];

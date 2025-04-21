@@ -9,10 +9,5 @@ export const MAX_RATING = 10;
 export const MIN_RATING = 1;
 export const COMMENT_MAX_LENGTH = 1000;
 export const DEFAULT_PAGE_SIZE = 10;
-export const COMMENT_FILTER_VALUES = [
-    { id: 1, label: "By Stars" },
-    { id: 2, label: "Liked by you" },
-    { id: 3, label: "Disliked by you" }
-];
 
 export const PASS_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;

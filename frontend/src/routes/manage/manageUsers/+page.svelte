@@ -15,6 +15,7 @@
     import { USER_NAME_LENGTH } from '$lib/consts.js';
     import Modal from '$lib/Modal.svelte';
     import SearchField from '$lib/SearchField.svelte';
+    import { _ } from "svelte-i18n";
 
     let selectedName;
     let selectedId;
@@ -30,12 +31,12 @@
                 const text = response.text();
                 if(text.includes("User not found")) {
                     addToast({
-                        message: "User not found",
+                        message: $_("ErrorMessages.userNotFound"),
                         type: "error",
                     });
                 } else {
                     addToast({
-                        message: "Something went wrong. Please try again later.",
+                        message: $_("ErrorMessages.somethingWentWrong"),
                         type: "error",
                     });
                 }
@@ -44,7 +45,7 @@
             userDetails = await response.json();
         } catch (error) {
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         }
@@ -65,12 +66,12 @@
                 return response.text().then(text => {
                     if (text.includes("User not found")) {
                         addToast({
-                            message: "User not found",
+                            message: $_("ErrorMessages.userNotFound"),
                             type: "error",
                         });
                     } else {
                         addToast({
-                            message: "Something went wrong. Please try again later.",
+                            message: $_("ErrorMessages.somethingWentWrong"),
                             type: "error",
                         });
                     }
@@ -81,16 +82,23 @@
         })
         .then(result => {
             if (result !== null) {
-                addToast({
-                    message: `User ${action}d successfully`,
-                    type: "success",
-                });
+                if(action === 'disable') {
+                    addToast({
+                        message: $_("ErrorMessages.userDisabledSuccessfully"),
+                        type: "success",
+                    });
+                } else if (action === 'enable') {
+                    addToast({
+                        message: $_("ErrorMessages.userEnabledSuccessfully"),
+                        type: "success",
+                    });
+                }
                 userDetails.enabled = !userDetails.enabled;
             }
         })
         .catch(error => {
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         });
@@ -120,11 +128,11 @@
 
 
 <Container>
-    <h1>Manage Users</h1>
-    <p class="text-center">Update user access by selecting an existing entry from the list</p>
+    <h1>{$_("ManageUsers.manageUsers")}</h1>
+    <p class="text-center">{$_("ManageUsers.updateUserText")}</p>
     <Form class="w-75 mx-auto" style="min-width: 100px; max-width: 700px;">
         <SearchField 
-            placeholder="Enter username" 
+            placeholder={$_("ManageUsers.enterUserName")}
             maxlength={USER_NAME_LENGTH}
             bind:value={selectedName}
             on:select={selectHandler}
@@ -133,22 +141,22 @@
         />
         {#if showEditField}
         <Container class="mt-3 d-flex justify-content-center align-items-center">
-            <h4>User information:</h4>
+            <h4>{$_("ManageUsers.userInformation")}</h4>
         </Container>
            <Container class="d-flex justify-content-between mt-3 align-items-center user-entry">
-                <p>Username: <strong>{userDetails.userName}</strong></p>
-                <p>Role: <strong>{userDetails.userRole}</strong></p>
-                <p>Account: <strong class={userDetails.enabled ? 'enabled' : 'disabled'}>{userDetails.enabled ? 'enabled' : 'disabled'}</strong></p>
-                <Button class="mb-3"color="primary" on:click={()=> {modalOpen = true }}>{userDetails.enabled ? 'Disable' : 'Enable'}</Button>
+                <p>{$_("ManageUsers.userName")}<strong>{userDetails.userName}</strong></p>
+                <p>{$_("ManageUsers.role")}<strong>{userDetails.userRole}</strong></p>
+                <p>{$_("ManageUsers.account")}<strong class={userDetails.enabled ? 'enabled' : 'disabled'}>{userDetails.enabled ? $_("ManageUsers.enabled") : $_("ManageUsers.disabled")}</strong></p>
+                <Button class="mb-3"color="primary" on:click={()=> {modalOpen = true }}>{userDetails.enabled ? $_("ManageUsers.disable") : $_("ManageUsers.enable")}</Button>
            </Container>
         {/if}
     </Form>
 </Container>
 {#if modalOpen}
     <Modal 
-        modalTitle={"Are you sure you want to disable " + selectedName + "?"}
-        modalBody={"This will not allow " + selectedName + " to login to the site anymore"}
-        buttonText={userDetails.enabled ? 'Disable' : 'Enable'}
+        modalTitle={$_("ManageUsers.areYouSureYouWantToDisable") + selectedName + "?"}
+        modalBody={$_("ManageUsers.thisWillNotAllow") + selectedName + $_("ManageUsers.toLoginToTheSiteAnymore")}
+        buttonText={userDetails.enabled ? $_("ManageUsers.disable") : $_("ManageUsers.enable")}
         buttonColor={userDetails.enabled ? 'danger' : 'success'}
         on:toggle={() => { modalOpen = false; }}
         on:confirm={confirmHandler}

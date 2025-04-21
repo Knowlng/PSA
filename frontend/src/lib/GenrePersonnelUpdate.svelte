@@ -15,13 +15,13 @@
     import { onMount } from 'svelte';
     import Modal from '$lib/Modal.svelte';
     import { addToast } from "$lib/ToastNotification/toastStore.js";
+    import { _ } from "svelte-i18n";
 
     export let type;
     export let maxlength;
 
     let selectedName = "";
     let apiName;
-    let fieldName;
     let showEditField;
     let changeNameEN = "";
     let changeNameLT = "";
@@ -34,7 +34,7 @@
         changeNameLT = changeNameLT.trim();
         if (!changeNameEN || !changeNameLT) {
             addToast({
-                message: "Please fill in all fields",
+                message: $_("ErrorMessages.pleaseFillInAllFields"),
                 type: "error",
             });
             return;
@@ -65,18 +65,18 @@
                 return response.text().then(text => {
                     if (text.includes("Entry already exists")) {
                         addToast({
-                            message: "Entry already exists",
+                            message: $_("ErrorMessages.entryAlreadyExists"),
                             type: "error",
                         });     
                     } else if(text.includes("Not found")) {
                         addToast({
-                            message: "Entry not found",
+                            message: $_("ErrorMessages.entryNotFound"),
                             type: "error",
                         }); 
                     }
                     else {
                         addToast({
-                            message: "Something went wrong. Please try again later.",
+                            message: $_("ErrorMessages.somethingWentWrong"),
                             type: "error",
                         });
                     }
@@ -88,14 +88,14 @@
         .then(result => {
             if (result !== null) {
                 addToast({
-                    message: "Entry updated successfully",
+                    message: $_("ErrorMessages.entryUpdatedSuccessfully"),
                     type: "success",
                 });
             }
         })
         .catch(error => {
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         })
@@ -120,12 +120,12 @@
                 return response.text().then(text => {
                     if (text.includes("Not found")) {
                         addToast({
-                            message: "Entry not found",
+                            message: $_("ErrorMessages.entryNotFound"),
                             type: "error",
                         });     
                     } else {
                         addToast({
-                            message: "Something went wrong. Please try again later.",
+                            message: $_("ErrorMessages.somethingWentWrong"),
                             type: "error",
                         });
                     }
@@ -136,14 +136,14 @@
         .then(result => {
            if (result !== null) {
                 addToast({
-                    message: "Entry deleted successfully",
+                    message: $_("ErrorMessages.entryDeletedSuccessfully"),
                     type: "success",
                 });
             }
         })
         .catch(error => {
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         })
@@ -176,18 +176,18 @@
                     if (text.includes(`Not found`)) {
                         if(type === "Genre") {
                             addToast({
-                                message: "Genre not found",
+                                message: $_("ErrorMessages.genreNotFound"),
                                 type: "error",
                             }); 
                         } else if(type === "Personnel") {
                             addToast({
-                                message: "Personnel not found",
+                                message: $_("ErrorMessages.personnelNotFound"),
                                 type: "error",
                             }); 
                         }                   
                     } else {
                         addToast({
-                            message: "Something went wrong. Please try again later.",
+                            message: $_("ErrorMessages.somethingWentWrong"),
                             type: "error",
                         });
                     }
@@ -201,8 +201,9 @@
             changeNameLT = data.lt;
         })
         .catch(error => {
+            console.log(error);
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         })
@@ -210,10 +211,8 @@
 
     onMount(() => {
         if(type === "Genre") {
-            fieldName = "genreName";
             apiName = "genre";
         } else if(type === "Personnel") {
-            fieldName = "personFullName";
             apiName = "person";
         }
     });
@@ -221,12 +220,12 @@
 </script>
 
 <Container>
-    <h1>Update {type} Info</h1>
-    <p>Update {type} info by selecting an existing entry from the list</p>
+   <h1>{$_("GenrePersonnelUpdate.update")} {type === "Genre" ?  $_("GenrePersonnelUpdate.genres") : $_("GenrePersonnelUpdate.personnels")} {$_("GenrePersonnelUpdate.info")}</h1>
+    <p>{$_("GenrePersonnelUpdate.updateIt")} {type === "Genre" ?  $_("GenrePersonnelUpdate.genres") : $_("GenrePersonnelUpdate.personnels")} {$_("GenrePersonnelUpdate.updateItSecondHalf")} </p>
     <Form class="w-75 mx-auto" style="min-width: 100px; max-width: 700px;">
         <FormGroup class="mb-4">
         <SearchField 
-            placeholder="Enter {type} name" 
+            placeholder={$_("GenrePersonnelUpdate.enter") + (type === "Genre" ? $_("GenrePersonnelUpdate.genres") : $_("GenrePersonnelUpdate.personnels")) + (type === "Genre" ? $_("GenrePersonnelUpdate.name") : $_("GenrePersonnelUpdate.fullName"))}
             maxlength={maxlength}
             bind:value={selectedName}
             on:select={selectHandler}
@@ -235,34 +234,32 @@
         />
         </FormGroup>
         {#if showEditField}
-            <Label>Enter English {type} name</Label>
+            <Label>{$_("GenrePersonnelUpdate.enterANew")} {type === "Genre" ?  $_("GenrePersonnelUpdate.genres") : $_("GenrePersonnelUpdate.personnels")} {type === "Genre" ?  $_("GenrePersonnelUpdate.name") : $_("GenrePersonnelUpdate.fullName")} {$_("GenrePersonnelUpdate.inEnglish")}</Label>
             <Input 
                 class="mb-4"
                 maxlength={maxlength}
                 type="text"
                 bind:value={changeNameEN}
-                placeholder="Enter new {type} name in English"
             />
-            <Label>Enter Lithuanian {type} name</Label>
+            <Label>{$_("GenrePersonnelUpdate.enterANew")} {type === "Genre" ?  $_("GenrePersonnelUpdate.genres") : $_("GenrePersonnelUpdate.personnels")} {type === "Genre" ?  $_("GenrePersonnelUpdate.name") : $_("GenrePersonnelUpdate.fullName")} {$_("GenrePersonnelUpdate.inLithuanian")}</Label>
             <Input 
                 class="mb-4"
                 maxlength={maxlength}
                 type="text"
                 bind:value={changeNameLT}
-                placeholder="Enter new {type} name in Lithuanian"
             />
             <Container class="d-flex justify-content-between">
-                <Button color="success" on:click={changeHandler}>Change</Button>
-                <Button color="danger" on:click={() => modalOpen = true}>Delete</Button>
+                <Button color="success" on:click={changeHandler}>{$_("GenrePersonnelUpdate.change")}</Button>
+                <Button color="danger" on:click={() => modalOpen = true}>{$_("GenrePersonnelUpdate.delete")}</Button>
             </Container>
         {/if}
     </Form>
 </Container>
 {#if modalOpen}
     <Modal 
-        modalTitle={"Are you sure you want to delete " + selectedName + "?"}
-        modalBody={"This will remove " + selectedName + " from every associated movie"}
-        buttonText="Delete"
+        modalTitle={$_("GenrePersonnelUpdate.areYouSure") + selectedName + "?"}
+        modalBody={$_("GenrePersonnelUpdate.thisWillRemove") + selectedName + $_("GenrePersonnelUpdate.thisWillRemoveSecondHalf")}
+        buttonText={$_("GenrePersonnelUpdate.delete")}
         on:toggle={() => { modalOpen = false; }}
         on:confirm={confirmDelete}
     />

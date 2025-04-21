@@ -4,6 +4,7 @@
   import Star from '$lib/Star.svelte';
   import { createEventDispatcher } from 'svelte';
   import Modal from '$lib/Modal.svelte';
+  import { _ } from "svelte-i18n";
 
   const dispatch = createEventDispatcher();
 
@@ -83,20 +84,20 @@
       disabled
     />
     <Container class="p-0 comment-footer">
-      <Container class="p-0 d-flex">
+      <Container class="p-0 d-flex sub-container">
         {#if isCommentDeletable}
           <Container class="d-flex justify-content-start align-items-center">
-            <button on:click={()=> modalOpen = true}>Delete</button>
+            <button on:click={()=> modalOpen = true}>{$_("CommentCard.delete")}</button>
           </Container>
         {/if}
-        <Container class="p-0 d-flex justify-content-end align-items-center">
+        <Container class="p-0 d-flex justify-content-end align-items-center sub-container">
           {#if localStorage.getItem('userLoggedIn') === 'true'}
-            <p class="ps-2 m-0"><strong>Like:</strong></p>
+            <p class="ps-2 m-0"><strong>{$_("CommentCard.like:")}</strong></p>
             <Star filled={currentRating === true} color="blue" size={32} clickable={true} on:click={handleLike}/>
-            <p class="ps-2 m-0"><strong>Dislike:</strong></p>
+            <p class="ps-2 m-0"><strong>{$_("CommentCard.dislike:")}</strong></p>
             <Star filled={currentRating === false} color="red" size={32} clickable={true} on:click={handleDislike}/>
           {/if}
-          <p class="ps-2 m-0"><strong>Rating: {totalRating}</strong></p>
+          <p class="ps-2 m-0"><strong>{$_("CommentCard.rating:")}{totalRating}</strong></p>
           <Star filled={true} color="yellow" size={32}/>
         </Container>
       </Container>
@@ -105,9 +106,9 @@
 </Container>
 {#if modalOpen}
   <Modal 
-    modalTitle={"Deleting " + username + "'s comment"}
-    modalBody={ "Are you sure you want to delete this comment?"}
-    buttonText="Delete"
+    modalTitle={$_("CommentCard.deleteModalTextStart") + username + $_("CommentCard.deleteModalTextEnd")}
+    modalBody={$_("CommentCard.deleteModalBody")}
+    buttonText={$_("CommentCard.deleteModalButtonText")}
     on:toggle={() => { modalOpen = false; rating = ''; }}
     on:confirm={handleCommentDelete}
   />
@@ -129,5 +130,11 @@
 
   button:hover {
     color: var(--information);
+  }
+
+  @media (max-width: 530px) {
+    :global(.sub-container) {
+      flex-direction: column;
+    }
   }
 </style>

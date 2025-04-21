@@ -175,7 +175,7 @@
 
             if (!response.ok) {
                 addToast({
-                    message: "Something went wrong. Please try again later.",
+                    message: $_("ErrorMessages.somethingWentWrong"),
                     type: "error",
                 });
                 return;
@@ -187,7 +187,7 @@
             totalEntries = data.totalElements;
         } catch (error) {
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         }
@@ -226,13 +226,13 @@
     
 </script>
 <Container class="mt-5 p-0">
-    <h1 class="text-center mb-5">Search Movies</h1>
+    <h1 class="text-center mb-5">{$_("Home.searchMovies")}</h1>
     <Form class='mb-5'>
         <Container class="w-75 mx-auto" style="min-width: 100px; max-width: 700px;">
             <FormGroup class="mb-4">
                 <Container class="mb-3">
                     <SearchField
-                        placeholder="Enter movie name" 
+                        placeholder={$_("Home.enterMovieName")}
                         maxlength={MAX_MOVIE_NAME_LENGTH} 
                         bind:value={movieName}
                         on:select={handleMovieEnter}
@@ -241,9 +241,9 @@
                 </Container>
                 {#if filterOpen}
                     <Container>
-                        <FormGroup floating label="Select multiple age ratings" class="override-mb">
+                        <FormGroup floating label={$_("Home.selectMultipleAgeRatings")} class="override-mb">
                             <Input type="select" bind:value={ageRating} on:change={onAgeRatingSelect}>
-                            <option value="">Select</option>
+                            <option value="">{$_("Home.select")}</option>
                             <option value="G">G</option>
                             <option value="PG">PG</option>
                             <option value="PG-13">PG-13</option>
@@ -263,26 +263,26 @@
                         {/each}
                     </Container>
                     <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center date-entry-container">
-                        <p class="mb-0 entry-label">From</p>
+                        <p class="mb-0 entry-label">{$_("Home.from")}</p>
                         <Input type="date" bind:value={fromDate} />
-                        <p class="mb-0 entry-label">To</p>
+                        <p class="mb-0 entry-label">{$_("Home.to")}</p>
                         <Input type="date" bind:value={toDate} />
                     </Container>
                     <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center gross-entry-container">
-                        <p class="mb-0 entry-label">From</p>
+                        <p class="mb-0 entry-label">{$_("Home.from")}</p>
                         <Container class='d-flex'>
                             <Input
-                                placeholder="Gross"
+                                placeholder={$_("Home.gross")}
                                 type="number" step="1" min="0"
                                 max={MAX_GROSS}
                                 bind:value={minGross}
                             />
                             <InputGroupText class='text-center'>$</InputGroupText>
                         </Container>
-                        <p class="mb-0 entry-label">To</p>
+                        <p class="mb-0 entry-label">{$_("Home.to")}</p>
                         <Container class='d-flex'>
                             <Input 
-                                placeholder="Gross"
+                                placeholder={$_("Home.gross")}
                                 type="number" step="1" min="0"
                                 max={MAX_GROSS}
                                 bind:value={maxGross}
@@ -291,24 +291,24 @@
                         </Container>
                     </Container>
                     <Container class="mb-3 d-flex gap-2 justify-content-center align-items-center rating-entry-container">
-                        <p class="mb-0 entry-label">From</p>
+                        <p class="mb-0 entry-label">{$_("Home.from")}</p>
                         <Input 
-                            placeholder="User Rating"
+                            placeholder={$_("Home.userRating")}
                             type="number" step="0.1"
                             max={MAX_RATING}
                             min={MIN_RATING}
                             bind:value={minRating}
                         />
-                        <p class="mb-0 entry-label">To</p>
+                        <p class="mb-0 entry-label">{$_("Home.to")}</p>
                         <Input 
-                            placeholder="User Rating"
+                            placeholder={$_("Home.userRating")}
                             type="number" step="0.1"
                             max={MAX_RATING}
                             min={MIN_RATING}
                             bind:value={maxRating}
                         />
                     </Container>
-                    <SearchField placeholder="Enter genre" maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/public/search-genre`} clearOnSelect={true}/>
+                    <SearchField placeholder={$_("Home.enterGenre")} maxlength={MAX_GENRE_SEARCH_LENGTH} bind:value={genreName} on:select={handleGenreEnter} searchEndpoint={`/api/public/search-genre`} clearOnSelect={true}/>
                     <ListGroup flush class="mt-3">
                         {#each genreArray as { id, name }, index}
                         <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
@@ -316,12 +316,12 @@
                             {name}
                           </Container>
                           <Container class="d-flex justify-content-end p-0">
-                            <Button type="button" color="danger" on:click={() => removeGenre(index)}>Remove</Button>  
+                            <Button type="button" color="danger" on:click={() => removeGenre(index)}>{$_("Home.remove")}</Button>  
                           </Container>
                         </ListGroupItem>
                       {/each}
                     </ListGroup>
-                    <SearchField placeholder="Enter Person Name" maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:select={handlePersonEnter} searchEndpoint={`/api/public/search-person`} clearOnSelect={true}/>
+                    <SearchField placeholder={$_("Home.enterPersonName")} maxlength={MAX_PERSON_SEARCH_LENGTH} bind:value={actorName} on:select={handlePersonEnter} searchEndpoint={`/api/public/search-person`} clearOnSelect={true}/>
                     <ListGroup flush class="mt-3">
                     {#each actorArray as { id, name}, index}
                         <ListGroupItem tag="a" class="d-flex justify-content-between align-items-center pl-1">
@@ -330,19 +330,20 @@
                         </Container>
                         <Container class="d-flex justify-content-end p-0">
                             <Input type="select" class="w-50" bind:value={actorArray[index].role}>
-                            {#each ["any role", "director", "writer", "actor"] as option}
-                                <option value={option}>{option}</option>
-                            {/each}
+                                <option value="any role">{$_("Home.anyRole")} </option>
+                                <option value="director">{$_("Home.director")} </option>
+                                <option value="writer">{$_("Home.writer")} </option>
+                                <option value="actor">{$_("Home.actor")} </option>
                             </Input>
-                            <Button type="button" color="danger" on:click={() => removeActor(index)}>Remove</Button>  
+                            <Button type="button" color="danger" on:click={() => removeActor(index)}>{$_("Home.remove")}</Button>  
                         </Container>
                         </ListGroupItem>
                     {/each}
                     </ListGroup>
                 {/if}
                 <Container class="d-flex justify-content-center gap-3">
-                    <Button type="button" on:click={toggleFilter} class="ml-2" color="primary">{filterOpen ? 'Close Filter' : 'Filter'}</Button>
-                    <Button class="text-center" color="success" on:click={search}>Search</Button>
+                    <Button type="button" on:click={toggleFilter} class="ml-2" color="primary">{filterOpen ? $_("Home.closeFilter")  : $_("Home.filter")}</Button>
+                    <Button class="text-center" color="success" on:click={search}>{$_("Home.search")} </Button>
                 </Container>
             </FormGroup>
         </Container>
@@ -360,11 +361,11 @@
     </Container>
     {:else if movies && movies.length > 0}
         <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 100px; max-width: 700px;">
-            <Container class='text-center'>Pages: {totalPages}</Container>
-            <Container class="text-center">Entries: {totalEntries}</Container>
+            <Container class='text-center'>{$_("Home.pages")} {totalPages}</Container>
+            <Container class="text-center">{$_("Home.entries")} {totalEntries}</Container>
             <Container class="d-flex per-page-panel text-center">
                 <Container style="min-width: 100px; max-width: 100px;" class="per-page-label text-end p-0 d-flex align-items-center justify-content-end">
-                    <Label class="m-0" for="perPage">Per page:</Label>
+                    <Label class="m-0" for="perPage">{$_("Home.perPage")}</Label>
                 </Container>
                 <Container style="min-width: 75px; max-width: 75px;">
                     <select key={perPage} type="select" bind:value={perPage} on:change={handlePerPageChange}>
@@ -380,8 +381,8 @@
         </Container>
     {:else}
         <Container class="text-center mt-4">
-            <h4>No movies found</h4>
-            <h4>Try altering your search parameters</h4>
+            <h4>{$_("Home.noMoviesFound")}</h4>
+            <h4>{$_("Home.noMoviesFoundBottomText")}</h4>
         </Container>
     {/if}
     <Container class="p-0 movie-entry mb-4" style="min-width: 100px; max-width: 700px;">
@@ -390,13 +391,13 @@
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div style="border: 1px solid black;" class="{index % 2 === 0 ? 'first-panel' : 'second-panel'} m-0 pb-3 pt-3 d-flex movie-panel" on:click={() => routeToMovie(movie.id)}>
             <Container>
-                <h4><strong>Title:</strong> {movie.filmName || '-'}</h4>
-                <p><strong>Release Date:</strong> {movie.filmReleaseDate || '-'}</p>
-                <p><strong>Rating:</strong> {movie.filmRating || '-'}</p>
-                <p><strong>Gross $:</strong> {movie.filmGross || '-'}</p>
+                <h4><strong>{$_("Home.title")}</strong> {movie.filmName || '-'}</h4>
+                <p><strong>{$_("Home.releaseDate")}</strong> {movie.filmReleaseDate || '-'}</p>
+                <p><strong>{$_("Home.ageRating")}</strong> {movie.filmRating || '-'}</p>
+                <p><strong>{$_("Home.gross")}</strong> {movie.filmGross || '-'}</p>
                 {#if movie.genres && movie.genres.length > 0}
                 <p>
-                  <strong>Genres:</strong>
+                  <strong>{$_("Home.genres")}</strong>
                   {#each movie.genres as genre, i}
                     {genre.name || '-'}{i < movie.genres.length - 1 ? ', ' : ''}
                   {/each}
@@ -404,7 +405,7 @@
               {/if}
               {#if movie.actors && movie.actors.length > 0}
                 <p>
-                  <strong>Personnel:</strong>
+                  <strong>{$_("Home.personnel")}</strong>
                   {#each movie.actors.slice().sort((a, b) => {
                     const priority = { director: 1, writer: 2, actor: 3 };
                     return (priority[a.role] || 4) - (priority[b.role] || 4);
@@ -417,20 +418,20 @@
             <Container class="p-0 d-flex flex-column">
                 <Container class="p-0 d-flex flex-column justify-content-center align-items-center raiting-panel">
                     <Container class="d-flex p-0 justify-content-center align-items-center">
-                        <p class="mb-0 me-2"><strong>Overall rating:</strong></p>
+                        <p class="mb-0 me-2"><strong>{$_("Home.overallRating")}</strong></p>
                         <strong><span class="me-1" style="font-size: 1.5rem;">{movie.averageRating ? movie.averageRating : '-' }</span></strong>
                         <Star size={32} color="yellow" outlined={true}/>
                     </Container>
                     {#if localStorage.getItem('userLoggedIn') === 'true'}
                     <Container class="d-flex p-0 justify-content-center align-items-center">
-                        <p class="mb-0 me-2"><strong>Your rating:</strong></p>
+                        <p class="mb-0 me-2"><strong>{$_("Home.yourRating")}</strong></p>
                         <strong><span class="me-1" style="font-size: 1.5rem;">{movie.userRating ? movie.userRating : '-'}</span></strong>
                         <Star size={32} color="blue" filled={movie.userRating ? true : false} />
                     </Container>
                     {/if}
                 </Container>
                 <Container class="">
-                    <h5 class="pt-1">Brief description</h5>
+                    <h5 class="pt-1">{$_("Home.briefDescription")}</h5>
                     <Container class="p-0 m-0" style="max-width: 300px;">
                         <p class="long-text">
                             {movie.filmDesc?.length > 100 ? movie.filmDesc.slice(0, 100) + ' <..>' : movie.filmDesc || '-'}

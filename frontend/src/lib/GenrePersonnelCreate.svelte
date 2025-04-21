@@ -12,6 +12,7 @@
     } from '@sveltestrap/sveltestrap'; 
     import { onMount } from 'svelte';
     import { addToast } from "$lib/ToastNotification/toastStore.js";
+    import { _ } from "svelte-i18n";
 
     export let type;
     export let maxlength;
@@ -26,7 +27,7 @@
         newNameLT = newNameLT.trim();
         if (!newNameEN || !newNameLT) {
             addToast({
-                message: "Please fill in all fields",
+                message: $_("ErrorMessages.pleaseFillInAllFields"),
                 type: "error",
             });
             return;
@@ -57,17 +58,17 @@
                 return response.text().then(text => {
                     if (text.includes("Entry already exists")) {
                         addToast({
-                            message: "Entry already exists",
+                            message: $_("ErrorMessages.entryAlreadyExists"),
                             type: "error",
                         });
                     } else if (text.includes("English entry already exists")) {
                         addToast({
-                            message: "English entry already exists",
+                            message: $_("ErrorMessages.englishEntryAlreadyExists"),
                             type: "error",
                         });
                     } else {
                        addToast({
-                            message: "Something went wrong. Please try again later.",
+                            message: $_("ErrorMessages.somethingWentWrong"),
                             type: "error",
                         });
                     }
@@ -79,14 +80,14 @@
         .then(result => {
             if (result !== null) {
                 addToast({
-                    message: "Entry created successfully",
+                    message: $_("ErrorMessages.entryCreatedSuccessfully"),
                     type: "success",
                 });
             }
         })
         .catch(error => {
             addToast({
-                message: "Something went wrong. Please try again later.",
+                message: $_("ErrorMessages.somethingWentWrong"),
                 type: "error",
             });
         })
@@ -107,28 +108,33 @@
 
 
 <Container>
-    <h1>Create {type}</h1>
-    <p class="text-center">Create a {type} by writting the name below</p>
+    <h1>{$_("GenrePersonnelCreate.create")} {type === "Genre" ?  $_("GenrePersonnelCreate.genre") : $_("GenrePersonnelCreate.personnel")}</h1>
+    <p class="text-center">{$_("GenrePersonnelCreate.createFirstHalf")} {type === "Genre" ?  $_("GenrePersonnelCreate.genre") : $_("GenrePersonnelCreate.personnel")} {$_("GenrePersonnelCreate.createSecondHalf")}</p>
     <Form class="w-75 mx-auto" style="min-width: 100px; max-width: 700px;">
-        <Label>English {type} name:</Label>
+        <Label>
+            {type === "Genre" ?  $_("GenrePersonnelCreate.genres") : $_("GenrePersonnelCreate.personnels")}
+            {type === "Genre" ?  $_("GenrePersonnelCreate.name") : $_("GenrePersonnelCreate.fullName")}
+            {$_("GenrePersonnelCreate.inEnglish")}
+        </Label>
         <Input 
             class="mb-4"
             maxlength={maxlength}
             type="text"
             bind:value={newNameEN}
-            placeholder={`Enter ${type} name in English`}
         />
-        <Label>Lithuanian {type} name:</Label>
+        <Label>
+            {type === "Genre" ?  $_("GenrePersonnelCreate.genres") : $_("GenrePersonnelCreate.personnels")}
+            {type === "Genre" ?  $_("GenrePersonnelCreate.name") : $_("GenrePersonnelCreate.fullName")}
+            {$_("GenrePersonnelCreate.inLithuanian")}
+        </Label>
         <Input 
             class="mb-4"
             maxlength={maxlength}
             type="text"
             bind:value={newNameLT}
-            placeholder={`Enter ${type} name in Lithuanian`}
-
         />
         <Container class="d-flex justify-content-center">
-            <Button color="primary" on:click={submitHandler}>Submit</Button>
+            <Button color="primary" on:click={submitHandler}>{$_("GenrePersonnelCreate.submit")}</Button>
         </Container>
     </Form>
 </Container>
