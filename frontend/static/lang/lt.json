@@ -155,7 +155,7 @@
     "changePasswordAndProfileSettings": "Slaptažodio keitimas & paskyros nustatymai",
     "logout": "Atsijungti"
   },
-  "changePassword": {
+  "ChangePassword": {
     "changePassword":"Pakeisti slaptažodį",
     "newPassword": "Naujas slaptažodis",
     "repeatNewPassword": "Pakartokite naują slaptažodį",

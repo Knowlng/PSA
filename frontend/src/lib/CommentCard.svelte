@@ -90,15 +90,21 @@
             <button on:click={()=> modalOpen = true}>{$_("CommentCard.delete")}</button>
           </Container>
         {/if}
-        <Container class="p-0 d-flex justify-content-end align-items-center sub-container">
+        <Container class="p-0 d-flex justify-content-center align-items-center sub-container">
           {#if localStorage.getItem('userLoggedIn') === 'true'}
-            <p class="ps-2 m-0"><strong>{$_("CommentCard.like:")}</strong></p>
-            <Star filled={currentRating === true} color="blue" size={32} clickable={true} on:click={handleLike}/>
-            <p class="ps-2 m-0"><strong>{$_("CommentCard.dislike:")}</strong></p>
-            <Star filled={currentRating === false} color="red" size={32} clickable={true} on:click={handleDislike}/>
+            <Container class="p-0 d-flex justify-content-center align-items-center">
+              <p class="ps-2 m-0"><strong>{$_("CommentCard.like:")}</strong></p>
+              <Star filled={currentRating === true} color="blue" size={32} clickable={true} on:click={handleLike}/>
+            </Container>
+            <Container class="p-0 d-flex justify-content-center align-items-center">
+              <p class="ps-2 m-0"><strong>{$_("CommentCard.dislike:")}</strong></p>
+              <Star filled={currentRating === false} color="red" size={32} clickable={true} on:click={handleDislike}/>
+            </Container>
           {/if}
-          <p class="ps-2 m-0"><strong>{$_("CommentCard.rating:")}{totalRating}</strong></p>
-          <Star filled={true} color="yellow" size={32}/>
+          <Container class="p-0 d-flex justify-content-center align-items-center">
+            <p class="ps-2 m-0"><strong>{$_("CommentCard.rating:")}{totalRating}</strong></p>
+            <Star filled={true} color="yellow" size={32}/>
+          </Container>
         </Container>
       </Container>
     </Container>

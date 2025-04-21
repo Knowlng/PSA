@@ -134,6 +134,8 @@
     "username": "Username",
     "password": "Password",
     "repeatPassword": "Repeat Password",
+    "registerInstead": "Register instead",
+    "loginInstead": "Login instead",
     "enterYourUserName": "Enter your username",
     "enterYourPassword": "Enter your password",
     "repeatYourPassword": "Repeat your password"

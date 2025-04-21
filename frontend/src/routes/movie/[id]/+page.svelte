@@ -682,7 +682,7 @@
     {:else if comments && comments.length > 0}
         <Container class="d-flex justify-content-end align-items-center mb-3" style="min-width: 100px; max-width: 700px;">
           <Container class="text-center">{$_("MovieIdPage.totalPages:")} {totalPages}</Container>
-          <Container class="text-center">{$_("MovieIdPage.totalEntries:")}{totalEntries}</Container>
+          <Container class="text-center">{$_("MovieIdPage.totalEntries:")} {totalEntries}</Container>
           <Container class="d-flex per-page-panel text-center">
             <Container style="min-width: 100px; max-width: 100px;" class="per-page-label text-end p-0 d-flex align-items-center justify-content-end">
               <Label class="m-0" for="perPage">{$_("MovieIdPage.perPage:")}</Label>
@@ -762,13 +762,14 @@
   @media (max-width: 530px) {
     :global(.filter-container) {
       flex-direction: column;
+      padding: 0;
     }
     :global(.filter-select) {
-      width: 250px !important;
+      width: 200px !important;
       margin-bottom: 10px;
     }
     :global(.filter-select-order) {
-      width: 250px !important;
+      width: 200px !important;
       margin-bottom: 10px;
     }
     :global(.second-info-containter) {
